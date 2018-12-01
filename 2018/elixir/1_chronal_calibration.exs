@@ -4,14 +4,14 @@ defmodule ChronalCalibration do
     freq_changes
     |> Stream.cycle()
     |> Enum.reduce_while(
-      {0, %{0 => 1}},
+      {0, MapSet.new([0])},
       fn freq_change, {prev_freq, reached_freqs} = _acc ->
         freq = prev_freq + freq_change
 
-        if reached_freqs[freq] do
+        if MapSet.member?(reached_freqs, freq) do
           {:halt, freq}
         else
-          reached_freqs = Map.put(reached_freqs, freq, 1)
+          reached_freqs = MapSet.put(reached_freqs, freq)
           {:cont, {freq, reached_freqs}}
         end
       end
