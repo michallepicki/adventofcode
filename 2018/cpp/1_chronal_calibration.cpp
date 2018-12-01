@@ -1,6 +1,6 @@
 #include <iostream>
 #include <fstream>
-#include <set>
+#include <unordered_set>
 #include <utility>
 
 int main()
@@ -13,7 +13,7 @@ int main()
 
   freq = 0;
   bool found = false;
-  std::set<int> reached_freqs = {0};
+  std::unordered_set<int> reached_freqs = {0};
   while (!found)
   {
     input_file.clear();
