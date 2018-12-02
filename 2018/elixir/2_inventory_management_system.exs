@@ -16,6 +16,36 @@ defmodule InventoryManagementSystem do
     |> (&(elem(&1, 0) * elem(&1, 1))).()
   end
 
+  def similar_ids(box_ids) do
+    box_ids
+    |> Enum.reduce_while(
+      MapSet.new(),
+      fn id, patterns ->
+        for i <- 0..(String.length(id) - 1) do
+          {head, tail} = String.split_at(id, i)
+          {_head, tail} = String.split_at(tail, 1)
+          head <> "_" <> tail
+        end
+        |> Enum.reduce_while(
+          patterns,
+          fn pattern, patterns ->
+            if pattern in patterns do
+              {:halt, pattern}
+            else
+              {:cont, MapSet.put(patterns, pattern)}
+            end
+          end
+        )
+        |> case do
+          pattern when is_binary(pattern) ->
+            {:halt, pattern |> String.replace("_", "")}
+          patterns ->
+            {:cont, patterns}
+        end
+      end
+    )
+  end
+
   def read_file(filename) do
     filename
     |> File.stream!()
@@ -26,4 +56,9 @@ end
 "../2"
 |> InventoryManagementSystem.read_file()
 |> InventoryManagementSystem.checksum()
+|> IO.puts()
+
+"../2"
+|> InventoryManagementSystem.read_file()
+|> InventoryManagementSystem.similar_ids()
 |> IO.puts()
