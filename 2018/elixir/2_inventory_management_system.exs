@@ -1,4 +1,4 @@
-#! /usr/bin/env elixir
+#!/usr/bin/env elixir
 defmodule InventoryManagementSystem do
   def checksum(box_ids) do
     box_ids

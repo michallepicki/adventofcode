@@ -1,4 +1,4 @@
-#! /usr/bin/env ruby
+#!/usr/bin/env ruby
 twos = 0
 threes = 0
 File.open('../2', 'r') do |file|

@@ -1,4 +1,4 @@
-#! /usr/bin/env elixir
+#!/usr/bin/env elixir
 defmodule ChronalCalibration do
   def solve_b(freq_changes) do
     freq_changes
