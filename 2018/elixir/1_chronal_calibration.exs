@@ -8,7 +8,7 @@ defmodule ChronalCalibration do
       fn freq_change, {prev_freq, reached_freqs} = _acc ->
         freq = prev_freq + freq_change
 
-        if MapSet.member?(reached_freqs, freq) do
+        if freq in reached_freqs do
           {:halt, freq}
         else
           reached_freqs = MapSet.put(reached_freqs, freq)
