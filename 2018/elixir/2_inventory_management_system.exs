@@ -39,6 +39,7 @@ defmodule InventoryManagementSystem do
         |> case do
           pattern when is_binary(pattern) ->
             {:halt, pattern |> String.replace("_", "")}
+
           patterns ->
             {:cont, patterns}
         end

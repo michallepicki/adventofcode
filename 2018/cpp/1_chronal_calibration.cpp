@@ -17,10 +17,11 @@ int main()
   {
     input_file.clear();
     input_file.seekg(0);
-    while (!found && input_file >> freq_change){
+    while (!found && input_file >> freq_change)
+    {
       freq += freq_change;
       auto result = reached_freqs.insert(freq);
-      if(!result.second)
+      if (!result.second)
         found = true;
     }
   }

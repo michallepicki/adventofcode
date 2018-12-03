@@ -34,12 +34,14 @@ int main()
   while (!found && input_file >> id)
   {
     unsigned long max_pos = id.length() - 1;
-    for(unsigned int i = 0; i < max_pos; i++){
-      auto result = patterns.insert(std::string(id).replace(i,1,"_"));
-      if(!result.second){
+    for (unsigned int i = 0; i < max_pos; i++)
+    {
+      auto result = patterns.insert(std::string(id).replace(i, 1, "_"));
+      if (!result.second)
+      {
         found = true;
         id = *(result.first);
-        id.replace(i,1,"");
+        id.replace(i, 1, "");
       }
     }
   }

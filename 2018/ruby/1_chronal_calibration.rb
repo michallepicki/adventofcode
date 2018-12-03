@@ -12,11 +12,11 @@ freq = 0
 reached_freqs = Set[0]
 File.open('../1', 'r') do |file|
   found = false
-  while not found do
+  until found
     file.seek(0)
-    while not found and freq_change = file.gets do
+    while !found && (freq_change = file.gets)
       freq += Integer(freq_change)
-      if not reached_freqs.add?(freq) then found = true end
+      found = true unless reached_freqs.add?(freq)
     end
   end
 end
