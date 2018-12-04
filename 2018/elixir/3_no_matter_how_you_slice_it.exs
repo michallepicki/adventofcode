@@ -36,9 +36,7 @@ defmodule NoMatterHowYouSliceIt do
   def read_file(filename) do
     filename
     |> File.stream!()
-    |> Stream.map(&String.trim/1)
-    |> Stream.map(&String.split(&1, [" ", ",", "x", "#", "@", ":"]))
-    |> Stream.map(&Enum.filter(&1, fn part -> part != "" end))
+    |> Stream.map(&String.split(&1, [",", "x", "#", " @ ", ": ", "\n"], trim: true))
     |> Stream.map(&Enum.map(&1, fn string -> String.to_integer(string) end))
   end
 end
@@ -48,6 +46,6 @@ end
 |> Enum.to_list()
 |> NoMatterHowYouSliceIt.solve()
 |> (fn {p1, _, p2} ->
-      IO.inspect(p1)
+      IO.puts(p1)
       IO.inspect(p2)
     end).()
