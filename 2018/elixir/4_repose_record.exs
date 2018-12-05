@@ -28,7 +28,7 @@ defmodule ReposeRecords do
   end
 
   def interpret_record_string(
-        <<_prefix::bytes-size(15)>> <> <<minute::bytes-size(2)>> <> "] falls asleep",
+        <<_prefix::bytes-size(15)>> <> <<minute::bytes-size(2)>> <> "] falls asleep\n",
         acc
       ) do
     {guard_id, _, records, max_so_far, candidate} = acc
@@ -37,7 +37,7 @@ defmodule ReposeRecords do
   end
 
   def interpret_record_string(
-        <<_prefix::bytes-size(15)>> <> <<minute::bytes-size(2)>> <> "] wakes up",
+        <<_prefix::bytes-size(15)>> <> <<minute::bytes-size(2)>> <> "] wakes up\n",
         acc
       ) do
     {guard_id, asleep_at, records, max_so_far, candidate} = acc
@@ -71,18 +71,10 @@ defmodule ReposeRecords do
 
     {guard_id, minute, Map.put(records, guard_id, updated_guards_records), new_max, new_candidate}
   end
-
-  def read_file(filename) do
-    filename
-    |> File.stream!()
-    |> Stream.map(&String.trim/1)
-    |> Enum.into([])
-    |> Enum.sort()
-  end
 end
 
 "../4"
-|> ReposeRecords.read_file()
-|> Enum.to_list()
+|> File.stream!()
+|> Enum.sort()
 |> ReposeRecords.solve()
 |> IO.puts()
