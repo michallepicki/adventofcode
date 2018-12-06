@@ -6,7 +6,7 @@ defmodule ChronalCoordinates do
     for x <- min_x..max_x, y <- min_y..max_y do
       {x, y}
     end
-    |> Enum.map(&find_closest(locations, &1))
+    |> Enum.map(&find_nearest(locations, &1))
     |> Enum.into(%{})
     |> remove_infinite(locations, bounding_box)
     |> Enum.map(&elem(&1, 1))
@@ -23,7 +23,7 @@ defmodule ChronalCoordinates do
     {{min_x, min_y}, {max_x, max_y}}
   end
 
-  def find_closest(locations, position) do
+  def find_nearest(locations, position) do
     distances = Enum.map(locations, &{&1, manhattan_distance(&1, position)})
     {_, min_distance} = Enum.min_by(distances, &elem(&1, 1))
 
