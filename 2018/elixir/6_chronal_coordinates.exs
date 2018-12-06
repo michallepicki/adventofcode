@@ -1,12 +1,15 @@
-#! /usr/bin/env elixir
+#!/usr/bin/env elixir
 defmodule ChronalCoordinates do
   def solve_a(locations) do
-    {{min_x, min_y}, {max_x, max_y}} = bounding_box(locations)
+    {{min_x, min_y}, {max_x, max_y}} = bounding_box = bounding_box(locations)
 
     for x <- min_x..max_x, y <- min_y..max_y do
       {x, y}
     end
     |> Enum.map(&find_closest(locations, &1))
+    |> Enum.into(%{})
+    |> remove_infinite(locations, bounding_box)
+    |> Enum.map(&elem(&1, 1))
     |> Enum.filter(& &1)
     |> Enum.group_by(& &1)
     |> Enum.max_by(fn {_point, list} -> length(list) end)
@@ -25,8 +28,31 @@ defmodule ChronalCoordinates do
     {_, min_distance} = Enum.min_by(distances, &elem(&1, 1))
 
     case Enum.filter(distances, &(elem(&1, 1) == min_distance)) do
-      [{nearest, _}] -> nearest
-      _ -> nil
+      [{nearest, _}] -> {position, nearest}
+      _ -> {position, nil}
+    end
+  end
+
+  def remove_infinite(points_with_nearest, locations, bounding_box) do
+    infinite_solutions =
+      Enum.reduce(locations, [], &check_if_infinite(points_with_nearest, bounding_box, &1, &2))
+
+    Enum.reject(points_with_nearest, &(elem(&1, 1) in infinite_solutions))
+  end
+
+  def check_if_infinite(
+        points_with_nearest,
+        {{min_x, min_y}, {max_x, max_y}},
+        {x, y} = location,
+        acc
+      ) do
+    if Map.get(points_with_nearest, {min_x, y}) == location ||
+         Map.get(points_with_nearest, {max_x, y}) == location ||
+         Map.get(points_with_nearest, {x, min_y}) == location ||
+         Map.get(points_with_nearest, {max_x, max_y}) == location do
+      [location | acc]
+    else
+      acc
     end
   end
 
@@ -36,7 +62,9 @@ defmodule ChronalCoordinates do
     for x <- min_x..max_x, y <- min_y..max_y do
       {x, y}
     end
-    |> Enum.map(fn position -> locations |> Enum.map(&manhattan_distance(&1, position)) |> Enum.sum() end)
+    |> Enum.map(fn position ->
+      locations |> Enum.map(&manhattan_distance(&1, position)) |> Enum.sum()
+    end)
     |> Enum.filter(&(&1 < 10000))
     |> Enum.count()
   end
