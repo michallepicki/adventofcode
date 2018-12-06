@@ -24,10 +24,21 @@ defmodule ChronalCoordinates do
     distances = Enum.map(locations, &{&1, manhattan_distance(&1, position)})
     {_, min_distance} = Enum.min_by(distances, &elem(&1, 1))
 
-    case Enum.filter(distances, fn {_, distance} -> distance == min_distance end) do
+    case Enum.filter(distances, &(elem(&1, 1) == min_distance)) do
       [{nearest, _}] -> nearest
       _ -> nil
     end
+  end
+
+  def solve_b(locations) do
+    {{min_x, min_y}, {max_x, max_y}} = bounding_box(locations)
+
+    for x <- min_x..max_x, y <- min_y..max_y do
+      {x, y}
+    end
+    |> Enum.map(fn position -> locations |> Enum.map(&manhattan_distance(&1, position)) |> Enum.sum() end)
+    |> Enum.filter(&(&1 < 10000))
+    |> Enum.count()
   end
 
   def manhattan_distance({x1, y1}, {x2, y2}) do
@@ -61,5 +72,5 @@ case System.argv() do
 
   _ ->
     "../6" |> ChronalCoordinates.read_file() |> ChronalCoordinates.solve_a() |> IO.inspect()
-    # "../1" |> ChronalCalibration.read_file() |> ChronalCalibration.solve_b() |> IO.puts()
+    "../6" |> ChronalCoordinates.read_file() |> ChronalCoordinates.solve_b() |> IO.inspect()
 end
