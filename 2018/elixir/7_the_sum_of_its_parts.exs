@@ -45,6 +45,45 @@ defmodule TheSumOfItsParts do
 
   def solve_b(instructions) do
     instructions
+    |> build_graph()
+    |> get_time()
+  end
+
+  def get_time(graph), do: schedule_work(graph, [nil, nil, nil, nil, nil], 0)
+  # def get_time(graph), do: schedule_work(graph, [nil, nil], 0) # swap for test
+
+  def schedule_work(graph, [nil, nil, nil, nil, nil], time) when map_size(graph) == 0, do: time
+  # def schedule_work(graph, [nil, nil], time) when map_size(graph) == 0, do: time # swap for test
+
+  def schedule_work(graph, workers, time) do
+    in_progress = workers |> Enum.filter(& &1) |> Enum.map(&elem(&1, 0))
+    available = (available_parts(graph) -- in_progress) |> Enum.sort()
+
+    if nil in workers and Enum.count(available) > 0 do
+      doing = hd(available)
+      workers = List.delete(workers, nil)
+      workers = [{doing, doing - 5} | workers]
+      schedule_work(graph, workers, time)
+    else
+      tick(graph, workers, time)
+    end
+  end
+
+  def tick(graph, workers, time) do
+    {graph, workers} =
+      Enum.reduce(workers, {graph, workers}, fn
+        {part, 0}, {graph, workers} ->
+          graph = remove(graph, part)
+          workers = List.delete(workers, {part, 0})
+          {graph, [nil | workers]}
+
+        {part, time}, {graph, workers} ->
+          workers = List.delete(workers, {part, time})
+          {graph, [{part, time - 1} | workers]}
+        nil, {graph, workers} -> {graph, workers}
+      end)
+
+    schedule_work(graph, workers, time + 1)
   end
 
   def read_file(filename) do
@@ -84,9 +123,22 @@ case System.argv() do
                    {?A, ?G}
                  ])
       end
+
+      test "part b" do
+        assert 15 =
+                 TheSumOfItsParts.solve_b([
+                   {?C - 60, ?A - 60},
+                   {?C - 60, ?F - 60},
+                   {?A - 60, ?B - 60},
+                   {?A - 60, ?D - 60},
+                   {?B - 60, ?E - 60},
+                   {?D - 60, ?E - 60},
+                   {?F - 60, ?E - 60}
+                 ])
+      end
     end
 
   _ ->
     "../7" |> TheSumOfItsParts.read_file() |> TheSumOfItsParts.solve_a() |> IO.inspect()
-    #"../7" |> TheSumOfItsParts.read_file() |> TheSumOfItsParts.solve_b() |> IO.inspect()
+    "../7" |> TheSumOfItsParts.read_file() |> TheSumOfItsParts.solve_b() |> IO.inspect()
 end
