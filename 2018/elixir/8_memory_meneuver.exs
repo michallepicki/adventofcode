@@ -32,6 +32,24 @@ defmodule MemoryManeuver do
 
   def solve_b(data) do
     data
+    |> read_node()
+    |> elem(0)
+    |> get_value()
+  end
+
+  def get_value({children_count, _, children, metadata}) do
+    if(children_count == 0) do
+      Enum.sum(metadata)
+    else
+      Enum.map(metadata, fn index ->
+        if index <= children_count do
+          get_value(Enum.at(children, index - 1))
+        else
+          0
+        end
+      end)
+      |> Enum.sum()
+    end
   end
 
   def read_file(filename) do
@@ -54,12 +72,12 @@ case System.argv() do
         assert 138 = MemoryManeuver.solve_a([2, 3, 0, 3, 10, 11, 12, 1, 1, 0, 1, 99, 2, 1, 1, 2])
       end
 
-      # test "part b" do
-      #   assert 138 = MemoryManeuver.solve_a([2, 3, 0, 3, 10, 11, 12, 1, 1, 0, 1, 99, 2, 1, 1, 2])
-      # end
+      test "part b" do
+        assert 66 = MemoryManeuver.solve_b([2, 3, 0, 3, 10, 11, 12, 1, 1, 0, 1, 99, 2, 1, 1, 2])
+      end
     end
 
   _ ->
     "../8" |> MemoryManeuver.read_file() |> MemoryManeuver.solve_a() |> IO.inspect()
-    # "../8" |> MemoryManeuver.read_file() |> MemoryManeuver.solve_b() |> IO.inspect()
+    "../8" |> MemoryManeuver.read_file() |> MemoryManeuver.solve_b() |> IO.inspect()
 end
