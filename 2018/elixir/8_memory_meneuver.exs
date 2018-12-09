@@ -10,7 +10,7 @@ defmodule MemoryManeuver do
   def read_node([children_count, metadata_count | leftover]) do
     {children, leftover} = read_nodes(leftover, children_count, [])
     {metadata, leftover} = read_metadata(leftover, metadata_count, [])
-    {{children_count, metadata_count, children, metadata}, leftover}
+    {{children_count, children, metadata}, leftover}
   end
 
   def read_nodes(leftover, 0, acc), do: {Enum.reverse(acc), leftover}
@@ -26,7 +26,7 @@ defmodule MemoryManeuver do
     read_metadata(leftover, metadata_count - 1, [metadata | acc])
   end
 
-  def sum_metadata({_, _, children, metadata}) do
+  def sum_metadata({_, children, metadata}) do
     Enum.sum(metadata) + Enum.sum(Enum.map(children, &sum_metadata/1))
   end
 
@@ -37,19 +37,19 @@ defmodule MemoryManeuver do
     |> get_value()
   end
 
-  def get_value({children_count, _, children, metadata}) do
-    if(children_count == 0) do
-      Enum.sum(metadata)
-    else
-      Enum.map(metadata, fn index ->
-        if index <= children_count do
-          get_value(Enum.at(children, index - 1))
-        else
-          0
-        end
-      end)
-      |> Enum.sum()
-    end
+  def get_value({0, _, metadata}) do
+    Enum.sum(metadata)
+  end
+
+  def get_value({children_count, children, metadata}) do
+    Enum.map(metadata, fn index ->
+      if index <= children_count do
+        get_value(Enum.at(children, index - 1))
+      else
+        0
+      end
+    end)
+    |> Enum.sum()
   end
 
   def read_file(filename) do
