@@ -43,6 +43,10 @@ defmodule TheSumOfItsParts do
     |> Enum.map(&elem(&1, 0))
   end
 
+  def solve_b(instructions) do
+    instructions
+  end
+
   def read_file(filename) do
     filename
     |> File.stream!()
@@ -67,8 +71,8 @@ case System.argv() do
     defmodule TheSumOfItsPartsTest do
       use ExUnit.Case
 
-      test "example input" do
-        assert 'CABDGFE' =
+      test "part a" do
+        assert 'CABDFEG' =
                  TheSumOfItsParts.solve_a([
                    {?C, ?A},
                    {?C, ?F},
@@ -84,5 +88,5 @@ case System.argv() do
 
   _ ->
     "../7" |> TheSumOfItsParts.read_file() |> TheSumOfItsParts.solve_a() |> IO.inspect()
-    # "../7" |> TheSumOfItsParts.read_file() |> ChronalCoordinates.solve_b() |> IO.inspect()
+    #"../7" |> TheSumOfItsParts.read_file() |> TheSumOfItsParts.solve_b() |> IO.inspect()
 end
