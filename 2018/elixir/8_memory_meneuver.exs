@@ -7,25 +7,23 @@ defmodule MemoryManeuver do
     |> sum_metadata()
   end
 
-  def read_node([children_count, metadata_count | data]) do
-    {children, leftover} = read_nodes(data, children_count)
-    {metadata, leftover} = read_metadata(leftover, metadata_count)
+  def read_node([children_count, metadata_count | leftover]) do
+    {children, leftover} = read_nodes(leftover, children_count, [])
+    {metadata, leftover} = read_metadata(leftover, metadata_count, [])
     {{children_count, metadata_count, children, metadata}, leftover}
   end
 
-  def read_nodes(data, 0), do: {[], data}
+  def read_nodes(leftover, 0, acc), do: {Enum.reverse(acc), leftover}
 
-  def read_nodes(data, children_count) do
+  def read_nodes(data, children_count, acc) do
     {node, leftover} = read_node(data)
-    {nodes, leftover} = read_nodes(leftover, children_count - 1)
-    {[node | nodes], leftover}
+    read_nodes(leftover, children_count - 1, [node | acc])
   end
 
-  def read_metadata(data, 0), do: {[], data}
+  def read_metadata(leftover, 0, acc), do: {Enum.reverse(acc), leftover}
 
-  def read_metadata([metadata | leftover], metadata_count) do
-    {metadatas, leftover} = read_metadata(leftover, metadata_count - 1)
-    {[metadata | metadatas], leftover}
+  def read_metadata([metadata | leftover], metadata_count, acc) do
+    read_metadata(leftover, metadata_count - 1, [metadata | acc])
   end
 
   def sum_metadata({_, _, children, metadata}) do
