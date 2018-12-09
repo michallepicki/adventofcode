@@ -1,20 +1,24 @@
 #!/usr/bin/env elixir
 defmodule TheSumOfItsParts do
   def solve_a(instructions) do
-    graph =
-      instructions
-      |> Enum.reduce(
-        Map.new(),
-        fn {a, b}, graph ->
-          graph = Map.put_new(graph, a, [])
-          Map.update(graph, b, [a], fn required -> [a | required] end)
-        end
-      )
+    instructions
+    |> build_graph()
+    |> sort()
+  end
 
-    sort(graph)
+  def build_graph(instructions) do
+    instructions
+    |> Enum.reduce(
+      Map.new(),
+      fn {a, b}, graph ->
+        graph = Map.put_new(graph, a, [])
+        Map.update(graph, b, [a], fn requirements -> [a | requirements] end)
+      end
+    )
   end
 
   def sort(graph), do: sort(graph, [])
+
   def sort(graph, done) when map_size(graph) == 0, do: Enum.reverse(done)
 
   def sort(graph, done) do
@@ -26,13 +30,17 @@ defmodule TheSumOfItsParts do
 
   def remove(graph, removed_part) do
     graph
-    |> Enum.map(fn {part, required} -> {part, Enum.reject(required, &(&1 == removed_part))} end)
+    |> Enum.map(fn {part, requirements} ->
+      {part, Enum.reject(requirements, &(&1 == removed_part))}
+    end)
     |> Enum.into(%{})
     |> Map.delete(removed_part)
   end
 
   def available_parts(graph) do
-    Enum.filter(graph, fn {_part, required} -> required == [] end) |> Enum.map(&elem(&1, 0))
+    graph
+    |> Enum.filter(&(elem(&1, 1) == []))
+    |> Enum.map(&elem(&1, 0))
   end
 
   def read_file(filename) do
@@ -41,12 +49,14 @@ defmodule TheSumOfItsParts do
     |> Enum.map(fn line ->
       line
       |> String.trim()
-      |> (fn "Step " <>
-               <<first::utf8>> <>
-               " must be finished before step " <> <<second::utf8>> <> " can begin." ->
-            {first, second}
-          end).()
+      |> interpret_line()
     end)
+  end
+
+  def interpret_line(
+        "Step " <> <<first>> <> " must be finished before step " <> <<second>> <> " can begin."
+      ) do
+    {first, second}
   end
 end
 
