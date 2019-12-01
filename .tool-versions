@@ -1,2 +1,4 @@
 elixir 1.7.4-otp-21
 ruby 2.5.1
+gleam 0.5.0-rc1
+erlang 22.1.8
