@@ -69,7 +69,7 @@ fn solve_b(initial_array, array, index, noun, verb) {
       array
       |> e_array_set(1, noun, _)
       |> e_array_set(2, verb, _)
-      |> solve_a(_, 0)
+      |> solve_b(initial_array, _, 0, noun, verb)
     }
     index -> {
       case e_array_get(index, array) {
@@ -81,13 +81,9 @@ fn solve_b(initial_array, array, index, noun, verb) {
               100 * noun + verb
             }
             _ -> {
-              let new_noun = case noun {
-                99 -> 0
-                noun -> noun + 1
-              }
-              let new_verb = case verb {
-                99 -> 0
-                verb -> verb + 1
+              let struct(new_noun, new_verb) = case struct(noun, verb) {
+                struct(_, 99)    -> struct(noun + 1, 0)
+                struct(_, _) -> struct(noun, verb + 1)
               }
               solve_b(initial_array, initial_array, -1, new_noun, new_verb)
             }
