@@ -62,8 +62,51 @@ fn solve_a(array, index) {
   }
 }
 
-fn solve_b(_) {
-  0
+fn solve_b(initial_array, array, index, noun, verb) {
+  case index {
+    -1 -> {
+      // initialize
+      array
+      |> e_array_set(1, noun, _)
+      |> e_array_set(2, verb, _)
+      |> solve_a(_, 0)
+    }
+    index -> {
+      case e_array_get(index, array) {
+        99 -> {
+          case e_array_get(0, array) {
+            19690720 -> {
+              // e_io_put_chars(e_integer_to_binary(noun))
+              // e_io_put_chars(e_integer_to_binary(verb))
+              100 * noun + verb
+            }
+            _ -> {
+              let new_noun = case noun {
+                99 -> 0
+                noun -> noun + 1
+              }
+              let new_verb = case verb {
+                99 -> 0
+                verb -> verb + 1
+              }
+              solve_b(initial_array, initial_array, -1, new_noun, new_verb)
+            }
+          }
+        }
+        code -> {
+          let first_value = e_array_get(e_array_get(index + 1, array), array)
+          let second_value = e_array_get(e_array_get(index + 2, array), array)
+          let target_value = case code {
+            1 -> first_value + second_value
+            2 -> first_value * second_value
+          }
+          let target_index = e_array_get(index + 3, array)
+          let new_array = e_array_set(target_index, target_value, array)
+          solve_b(initial_array, new_array, index + 4, noun, verb)
+        }
+      }
+    }
+  }
 }
 
 pub fn main(_) {
@@ -78,8 +121,8 @@ pub fn main(_) {
   let a = solve_a(input, -1)
   e_io_put_chars(e_integer_to_binary(a))
   e_io_put_chars("\n")
-  let b = solve_b(input)
-  // e_io_put_chars(e_integer_to_binary(b))
-  // e_io_put_chars("\n")
+  let b = solve_b(input, input, -1, 0, 0)
+  e_io_put_chars(e_integer_to_binary(b))
+  e_io_put_chars("\n")
   0
 }
