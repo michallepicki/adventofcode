@@ -51,13 +51,13 @@ pub fn main(_) {
     first_line
     |> e_string_trim
     |> e_string_split(_, ",", All)
-    |> e_lists_map(parse_single_input, _)
+    |> e_lists_map(parse_single_input(_), _)
   let Ok(second_line) = e_file_read_line(file)
   let second_input =
     second_line
     |> e_string_trim
     |> e_string_split(_, ",", All)
-    |> e_lists_map(parse_single_input, _)
+    |> e_lists_map(parse_single_input(_), _)
   let a = solve_a(first_input, second_input)
   e_io_put_chars(e_integer_to_binary(a))
   e_io_put_chars("\n")
