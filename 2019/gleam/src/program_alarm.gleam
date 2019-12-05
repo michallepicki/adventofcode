@@ -76,8 +76,6 @@ fn solve_b(initial_array, array, index, noun, verb) {
         99 -> {
           case e_array_get(0, array) {
             19690720 -> {
-              // e_io_put_chars(e_integer_to_binary(noun))
-              // e_io_put_chars(e_integer_to_binary(verb))
               100 * noun + verb
             }
             _ -> {
