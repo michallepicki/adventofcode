@@ -20,8 +20,19 @@ external fn e_unicode_characters_to_binary(characters: Characters) -> String = "
 
 external fn e_lists_map(function: fn(a) -> b, list: List(a)) -> List(b) = "lists" "map"
 
+external fn e_hd(List(a)) -> a = "erlang" "hd"
+external fn e_tl(List(a)) -> List(a) = "erlang" "tl"
 external fn e_binary_to_integer(string: String) -> Int = "erlang" "binary_to_integer"
 external fn e_integer_to_binary(int: Int) -> String = "erlang" "integer_to_binary"
+
+enum WireMark {
+  FirstWireMark
+  SecondWireMark
+}
+external type Map
+external fn e_maps_new() -> Map = "maps" "new"
+external fn e_maps_put(key: struct(Int, Int), value: WireMark, map: Map) = "maps" "put"
+external fn e_maps_get(key: struct(Int, Int) )
 
 enum Direction {
   Right
@@ -40,8 +51,38 @@ fn parse_single_input(string: String) -> struct(Direction, Int) {
   struct(direction, distance)
 }
 
-fn solve_a(_, _) {
-  1
+fn walk(map, x, y, direction, distance, mark, best_crossing) {
+  case distance do {
+    -1 ->
+      struct(map, x, y, best_crossing)
+    distance -> {
+      let new_x = case direction {
+        Right -> x + 1
+        Left -> x - 1
+        _ -> x
+      }
+      let new_y = case direction {
+        Up -> y + 1
+        Down -> y - 1
+        _ -> y
+      }
+      let new_map = case e_maps_get(struct(x, y), map) {
+        mark ->e_maps_put(struct(x, y), mark, )
+      walk(new_map, new_x, new_y, direction, new_distance, new_best_crossing)
+    }
+  }
+}
+
+fn solve_a(first_wire, second_wire, map, x, y, best_crossing) {
+  case first_wire {
+    [] -> {
+      1
+    }
+    first_wire {
+      let struct(direction, distance) = hd(first_wire)
+      let struct(map, x, y, _) = walk(map, x, y, direction, distance, FirstWireMark, best_crossing)
+    }
+  }
 }
 
 pub fn main(_) {
