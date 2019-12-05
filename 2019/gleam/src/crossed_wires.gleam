@@ -86,17 +86,6 @@ fn walk(map, x, y, direction, distance, current_wire, best_crossing) {
         False -> {
           let our_new_crossing = abs(new_x) + abs(new_y)
           let our_new_best_crossing = min(best_crossing, our_new_crossing)
-          case our_new_crossing == 2549 {
-            True -> {
-              e_io_put_chars("hey! found the crossing\n")
-              e_io_put_chars(e_integer_to_binary(new_x))
-              e_io_put_chars("\n")
-              e_io_put_chars(e_integer_to_binary(new_y))
-              e_io_put_chars("\n")
-              True
-            }
-            _ -> False
-          }
           struct(map, our_new_best_crossing)
         }
       }
