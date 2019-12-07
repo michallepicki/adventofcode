@@ -54,8 +54,8 @@ fn solve_a(array, index) {
             2 -> first_value * second_value
           }
           let target_index = e_array_get(index + 3, array)
-          let new_array = e_array_set(target_index, target_value, array)
-          solve_a(new_array, index + 4)
+          let array = e_array_set(target_index, target_value, array)
+          solve_a(array, index + 4)
         }
       }
     }
@@ -79,11 +79,11 @@ fn solve_b(initial_array, array, index, noun, verb) {
               100 * noun + verb
             }
             _ -> {
-              let struct(new_noun, new_verb) = case struct(noun, verb) {
+              let struct(noun, verb) = case struct(noun, verb) {
                 struct(_, 99)    -> struct(noun + 1, 0)
                 struct(_, _) -> struct(noun, verb + 1)
               }
-              solve_b(initial_array, initial_array, -1, new_noun, new_verb)
+              solve_b(initial_array, initial_array, -1, noun, verb)
             }
           }
         }
@@ -95,8 +95,8 @@ fn solve_b(initial_array, array, index, noun, verb) {
             2 -> first_value * second_value
           }
           let target_index = e_array_get(index + 3, array)
-          let new_array = e_array_set(target_index, target_value, array)
-          solve_b(initial_array, new_array, index + 4, noun, verb)
+          let array = e_array_set(target_index, target_value, array)
+          solve_b(initial_array, array, index + 4, noun, verb)
         }
       }
     }

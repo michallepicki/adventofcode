@@ -70,25 +70,22 @@ fn walk_a(map, x, y, direction, distance, current_wire, best_crossing) {
     0 ->
       struct(map, x, y, best_crossing)
     distance -> {
-      let new_x = case direction {
+      let x = case direction {
         Right -> x + 1
         Left -> x - 1
         _ -> x
       }
-      let new_y = case direction {
+      let y = case direction {
         Up -> y + 1
         Down -> y - 1
         _ -> y
       }
-      let mark = e_maps_get(struct(new_x, new_y), map, current_wire)
-      let struct(new_map, new_best_crossing) = case mark == current_wire {
-        True -> struct(e_maps_put(struct(new_x, new_y), current_wire, map), best_crossing)
-        False -> {
-          let our_new_best_crossing = min(best_crossing, abs(new_x) + abs(new_y))
-          struct(map, our_new_best_crossing)
-        }
+      let mark = e_maps_get(struct(x, y), map, current_wire)
+      let struct(map, best_crossing) = case mark == current_wire {
+        True -> struct(e_maps_put(struct(x, y), current_wire, map), best_crossing)
+        False -> struct(map, min(best_crossing, abs(x) + abs(y)))
       }
-      walk_a(new_map, new_x, new_y, direction, distance - 1, current_wire, new_best_crossing)
+      walk_a(map, x, y, direction, distance - 1, current_wire, best_crossing)
     }
   }
 }
@@ -100,20 +97,20 @@ fn solve_a(first_wire, second_wire, map, x, y, best_crossing) {
         [] -> best_crossing
         _  -> {
           let struct(direction, distance) = e_hd(second_wire)
-          let struct(new_map, new_x, new_y, new_best_crossing) = walk_a(map, x, y, direction, distance, SecondWire, best_crossing)
-          solve_a([], e_tl(second_wire), new_map, new_x, new_y, new_best_crossing)
+          let struct(map, x, y, best_crossing) = walk_a(map, x, y, direction, distance, SecondWire, best_crossing)
+          solve_a([], e_tl(second_wire), map, x, y, best_crossing)
         }
       }
     }
     [_last_wire] -> {
       let struct(direction, distance) = e_hd(first_wire)
-      let struct(new_map, _new_x, _new_y, new_best_crossing) = walk_a(map, x, y, direction, distance, FirstWire, best_crossing)
-      solve_a(e_tl(first_wire), second_wire, new_map, 0, 0, new_best_crossing)
+      let struct(map, _x, _y, best_crossing) = walk_a(map, x, y, direction, distance, FirstWire, best_crossing)
+      solve_a(e_tl(first_wire), second_wire, map, 0, 0, best_crossing)
     }
     _ -> {
       let struct(direction, distance) = e_hd(first_wire)
-      let struct(new_map, new_x, new_y, new_best_crossing) = walk_a(map, x, y, direction, distance, FirstWire, best_crossing)
-      solve_a(e_tl(first_wire), second_wire, new_map, new_x, new_y, new_best_crossing)
+      let struct(map, x, y, best_crossing) = walk_a(map, x, y, direction, distance, FirstWire, best_crossing)
+      solve_a(e_tl(first_wire), second_wire, map, x, y, best_crossing)
     }
   }
 }
@@ -124,30 +121,30 @@ fn walk_b(map, x, y, direction, distance, current_wire, steps, best_crossing) {
       struct(map, x, y, steps, best_crossing)
     distance -> {
       let current_steps = steps + 1
-      let new_x = case direction {
+      let x = case direction {
         Right -> x + 1
         Left -> x - 1
         _ -> x
       }
-      let new_y = case direction {
+      let y = case direction {
         Up -> y + 1
         Down -> y - 1
         _ -> y
       }
-      let struct(mark, steps_mark) = e_maps_get(struct(new_x, new_y), map, struct(current_wire, current_steps))
-      let struct(new_map, new_best_crossing) = case mark == current_wire {
+      let struct(mark, steps_mark) = e_maps_get(struct(x, y), map, struct(current_wire, current_steps))
+      let struct(map, best_crossing) = case mark == current_wire {
         True -> {
           case steps_mark == current_steps {
-            True -> struct(e_maps_put(struct(new_x, new_y), struct(current_wire, current_steps), map), best_crossing)
+            True -> struct(e_maps_put(struct(x, y), struct(current_wire, current_steps), map), best_crossing)
             False -> struct(map, best_crossing)
           }
         }
         False -> {
-          let our_new_best_crossing = min(best_crossing, current_steps + steps_mark)
-          struct(map, our_new_best_crossing)
+          let our_best_crossing = min(best_crossing, current_steps + steps_mark)
+          struct(map, our_best_crossing)
         }
       }
-      walk_b(new_map, new_x, new_y, direction, distance - 1, current_wire, current_steps, new_best_crossing)
+      walk_b(map, x, y, direction, distance - 1, current_wire, current_steps, best_crossing)
     }
   }
 }
@@ -159,20 +156,20 @@ fn solve_b(first_wire, second_wire, map, x, y, steps, best_crossing) {
         [] -> best_crossing
         _  -> {
           let struct(direction, distance) = e_hd(second_wire)
-          let struct(new_map, new_x, new_y, new_steps, new_best_crossing) = walk_b(map, x, y, direction, distance, SecondWire, steps, best_crossing)
-          solve_b([], e_tl(second_wire), new_map, new_x, new_y, new_steps, new_best_crossing)
+          let struct(map, x, y, steps, best_crossing) = walk_b(map, x, y, direction, distance, SecondWire, steps, best_crossing)
+          solve_b([], e_tl(second_wire), map, x, y, steps, best_crossing)
         }
       }
     }
     [_last_wire] -> {
       let struct(direction, distance) = e_hd(first_wire)
-      let struct(new_map, _new_x, _new_y, _new_steps, new_best_crossing) = walk_b(map, x, y, direction, distance, FirstWire, steps, best_crossing)
-      solve_b(e_tl(first_wire), second_wire, new_map, 0, 0, 0, new_best_crossing)
+      let struct(map, _x, _y, _steps, best_crossing) = walk_b(map, x, y, direction, distance, FirstWire, steps, best_crossing)
+      solve_b(e_tl(first_wire), second_wire, map, 0, 0, 0, best_crossing)
     }
     _ -> {
       let struct(direction, distance) = e_hd(first_wire)
-      let struct(new_map, new_x, new_y, new_steps, new_best_crossing) = walk_b(map, x, y, direction, distance, FirstWire, steps, best_crossing)
-      solve_b(e_tl(first_wire), second_wire, new_map, new_x, new_y, new_steps, new_best_crossing)
+      let struct(map, x, y, steps, best_crossing) = walk_b(map, x, y, direction, distance, FirstWire, steps, best_crossing)
+      solve_b(e_tl(first_wire), second_wire, map, x, y, steps, best_crossing)
     }
   }
 }
