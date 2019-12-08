@@ -19,7 +19,7 @@ external fn e_string_slice_with_length(string: String, start: Int, length: Int) 
 external fn e_unicode_characters_to_binary(characters: Characters) -> String = "unicode" "characters_to_binary"
 
 external fn e_hd(List(a)) -> a = "erlang" "hd"
-external fn e_tl(List(a)) -> List(a) = "erlang" "tl"
+// external fn e_tl(List(a)) -> List(a) = "erlang" "tl"
 external fn e_binary_to_integer(string: String) -> Int = "erlang" "binary_to_integer"
 external fn e_integer_to_binary(int: Int) -> String = "erlang" "integer_to_binary"
 external fn e_abs(int: Int) -> Int = "erlang" "abs"
@@ -27,12 +27,20 @@ external fn e_abs(int: Int) -> Int = "erlang" "abs"
 external fn e_lists_map(function: fn(a) -> b, list: List(a)) -> List(b) = "lists" "map"
 external fn e_lists_foldl(function: fn(a, b) -> b, acc: b, list: List(a)) -> b = "lists" "foldl"
 external fn e_lists_sort(list: List(a)) -> List(a) = "lists" "sort"
-external fn e_lists_sort_by(function: fn(a, a) -> Bool, List(a)) -> List(a) = "lists" "sort"
+// external fn e_lists_sort_by(function: fn(a, a) -> Bool, List(a)) -> List(a) = "lists" "sort"
+external fn e_lists_reverse(list: List(a)) -> List(a) = "lists" "reverse"
 
 external type Ordset(a)
 external fn e_ordsets_from_list(list: List(a)) -> Ordset(a) = "ordsets" "from_list"
 external fn e_ordsets_intersection(a: Ordset(a), b: Ordset(a)) -> Ordset(a) = "ordsets" "intersection"
 external fn e_ordsets_to_list(ordset: Ordset(a)) -> List(a) = "ordsets" "to_list"
+
+external type Map(k, v)
+external fn e_maps_new() -> Map(k, v) = "maps" "new"
+external fn e_maps_put(key: k, value: v, map: Map(k, v)) -> Map(k, v) = "maps" "put"
+external fn e_maps_get(key: k, map: Map(k, v)) -> v = "maps" "get"
+// external fn e_maps_get_with_default(key: k, map: Map(k, v), default: v) -> v = "maps" "get"
+
 
 fn parse_single_input(string: String) -> struct(String, Int) {
   let direction = e_unicode_characters_to_binary(e_string_slice_with_length(string, 0, 1))
@@ -40,10 +48,10 @@ fn parse_single_input(string: String) -> struct(String, Int) {
   struct(direction, distance)
 }
 
-fn points(input, acc) {
+fn points(single_input, acc) {
   let struct(current_coords, wire) = acc
   let struct(x, y) = current_coords
-  let struct(direction, steps) = input
+  let struct(direction, steps) = single_input
   case steps {
     0 -> acc
     _ -> {
@@ -59,19 +67,66 @@ fn points(input, acc) {
   }
 }
 
-fn compare_points_a(a, b) {
-  let struct(a_x, a_y) = a
-  let struct(b_x, b_y) = b
-  e_abs(a_x) + e_abs(a_y) <= e_abs(b_x) + e_abs(b_y)
+fn manhattan_distance(point) {
+  let struct(x, y) = point
+  e_abs(x) + e_abs(y)
 }
 
 fn solve_a(first_input, second_input) {
-  let struct(_, first_wire) = e_lists_foldl(fn(a, b) { points(a, b) }, struct(struct(0, 0), []), first_input)
-  let struct(_, second_wire) = e_lists_foldl(fn(a, b) { points(a, b) }, struct(struct(0, 0), []), second_input)
-  let first_wire = e_ordsets_from_list(e_lists_sort(first_wire))
-  let second_wire = e_ordsets_from_list(e_lists_sort(second_wire))
-  let struct(x, y) = e_hd(e_lists_sort_by(fn(a, b) { compare_points_a(a, b) }, e_ordsets_to_list(e_ordsets_intersection(first_wire, second_wire))))
-  e_abs(x) + e_abs(y)
+  // get points for first wire
+  let struct(_, first_wire) =
+    first_input
+    |> e_lists_foldl(fn(input, acc) { points(input, acc) }, struct(struct(0, 0), []), _)
+  let first_wire = e_ordsets_from_list(first_wire)
+  // get points for second wire
+  let struct(_, second_wire) =
+    second_input
+    |> e_lists_foldl(fn(input, acc) { points(input, acc) }, struct(struct(0, 0), []), _)
+  let second_wire = e_ordsets_from_list(second_wire)
+
+  first_wire
+  |> e_ordsets_intersection(_, second_wire)
+  |> e_ordsets_to_list(_)
+  |> e_lists_map(fn(point) { manhattan_distance(point) }, _)
+  |> e_lists_sort(_)
+  |> e_hd(_)
+}
+
+fn stash_index(point, acc) {
+  let struct(index, map) = acc
+  struct(index + 1, e_maps_put(point, index, map))
+}
+
+fn combined_steps(point, first_wire_indexes, second_wire_indexes) {
+  e_maps_get(point, first_wire_indexes) + e_maps_get(point, second_wire_indexes)
+}
+
+fn solve_b(first_input, second_input) {
+  // get points and indexes for first wire
+  let struct(_, first_wire) =
+    first_input
+    |> e_lists_foldl(fn(a, b) { points(a, b) }, struct(struct(0, 0), []), _)
+  let first_wire_set = e_ordsets_from_list(first_wire)
+  let struct(_, first_wire_indexes) =
+  first_wire
+  |> e_lists_reverse(_)
+  |> e_lists_foldl(fn(point, acc) { stash_index(point, acc) }, struct(1, e_maps_new()), _)
+  // get points and indexes for second wire
+  let struct(_, second_wire) =
+    second_input
+    |> e_lists_foldl(fn(a, b) { points(a, b) }, struct(struct(0, 0), []), _)
+  let second_wire_set = e_ordsets_from_list(second_wire)
+  let struct(_, second_wire_indexes) =
+    second_wire
+    |> e_lists_reverse(_)
+    |> e_lists_foldl(fn(point, acc) { stash_index(point, acc) }, struct(1, e_maps_new()), _)
+
+  first_wire_set
+  |> e_ordsets_intersection(_, second_wire_set)
+  |> e_ordsets_to_list(_)
+  |> e_lists_map(fn(point) { combined_steps(point, first_wire_indexes, second_wire_indexes) }, _)
+  |> e_lists_sort(_)
+  |> e_hd(_)
 }
 
 pub fn main(_) {
@@ -91,8 +146,8 @@ pub fn main(_) {
   let a = solve_a(first_input, second_input)
   e_io_put_chars(e_integer_to_binary(a))
   e_io_put_chars("\n")
-  // let b = solve_b(first_input, second_input)
-  // e_io_put_chars(e_integer_to_binary(b))
-  // e_io_put_chars("\n")
+  let b = solve_b(first_input, second_input)
+  e_io_put_chars(e_integer_to_binary(b))
+  e_io_put_chars("\n")
   0
 }
