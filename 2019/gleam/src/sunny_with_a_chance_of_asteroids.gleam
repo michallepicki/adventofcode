@@ -33,6 +33,10 @@ enum Opcode {
   Multiply
   Input
   Output
+  JumpIfTrue
+  JumpIfFalse
+  LessThan
+  Equals
 }
 enum Mode {
   Position
@@ -57,6 +61,10 @@ fn parse_instruction(instruction) {
     2 -> Multiply
     3 -> Input
     4 -> Output
+    5 -> JumpIfTrue
+    6 -> JumpIfFalse
+    7 -> LessThan
+    8 -> Equals
   }
   struct(third_param_mode, second_param_mode, first_param_mode, opcode)
 }
@@ -71,7 +79,7 @@ fn write(value, array, param_index) {
   e_array_set(e_array_get(param_index, array), value, array)
 }
 
-fn solve_a(array, index, inputs, outputs) {
+fn solve(array, index, inputs, outputs) {
   let struct(_third_param_mode, second_param_mode, first_param_mode, opcode) = parse_instruction(e_array_get(index, array))
   case opcode {
     Halt -> {
@@ -81,23 +89,59 @@ fn solve_a(array, index, inputs, outputs) {
       let first_param = read(array, first_param_mode, index + 1)
       let second_param = read(array, second_param_mode, index + 2)
       let new_array = write(first_param + second_param, array, index + 3)
-      solve_a(new_array, index + 4, inputs, outputs)
+      solve(new_array, index + 4, inputs, outputs)
     }
     Multiply -> {
       let first_param = read(array, first_param_mode, index + 1)
       let second_param = read(array, second_param_mode, index + 2)
       let new_array = write(first_param * second_param, array, index + 3)
-      solve_a(new_array, index + 4, inputs, outputs)
+      solve(new_array, index + 4, inputs, outputs)
     }
     Input -> {
       let [input | new_inputs] = inputs
       let new_array = write(input, array, index + 1)
-      solve_a(new_array, index + 2, new_inputs, outputs)
+      solve(new_array, index + 2, new_inputs, outputs)
     }
     Output -> {
       let output = read(array, first_param_mode, index + 1)
       let new_outputs = [output | outputs]
-      solve_a(array, index + 2, inputs, new_outputs)
+      solve(array, index + 2, inputs, new_outputs)
+    }
+    JumpIfTrue -> {
+      let first_param = read(array, first_param_mode, index + 1)
+      let second_param = read(array, second_param_mode, index + 2)
+      case first_param {
+        0 -> solve(array, index + 3, inputs, outputs)
+        _ -> solve(array, second_param, inputs, outputs)
+      }
+    }
+    JumpIfFalse -> {
+      let first_param = read(array, first_param_mode, index + 1)
+      let second_param = read(array, second_param_mode, index + 2)
+      case first_param {
+        0 -> solve(array, second_param, inputs, outputs)
+        _ -> solve(array, index + 3, inputs, outputs)
+      }
+    }
+    LessThan -> {
+      let first_param = read(array, first_param_mode, index + 1)
+      let second_param = read(array, second_param_mode, index + 2)
+      let value = case first_param < second_param {
+        True -> 1
+        False -> 0
+      }
+      let new_array = write(value, array, index + 3)
+      solve(new_array, index + 4, inputs, outputs)
+    }
+    Equals -> {
+      let first_param = read(array, first_param_mode, index + 1)
+      let second_param = read(array, second_param_mode, index + 2)
+      let value = case first_param == second_param {
+        True -> 1
+        False -> 0
+      }
+      let new_array = write(value, array, index + 3)
+      solve(new_array, index + 4, inputs, outputs)
     }
   }
 }
@@ -111,12 +155,9 @@ pub fn main(_) {
     |> e_string_split(_, ",", All)
     |> e_lists_map(e_binary_to_integer(_), _)
     |> e_array_from_list
-  let outputs = solve_a(input, 0, [1], [])
-  e_display(outputs)
-  // e_io_put_chars(e_integer_to_binary(a))
-  // e_io_put_chars("\n")
-  // let b = solve_b(input, input, -1, 0, 0)
-  // e_io_put_chars(e_integer_to_binary(b))
-  // e_io_put_chars("\n")
+  let outputs_a = solve(input, 0, [1], [])
+  e_display(outputs_a)
+  let outputs_b = solve(input, 0, [5], [])
+  e_display(outputs_b)
   0
 }
