@@ -54,13 +54,8 @@ fn parse_input(input) {
   struct(e_binary_to_integer(range_start_string), e_binary_to_integer(range_end_string))
 }
 
-fn is_a_good_password(input) {
-  let a = input / 100000
-  let b = input / 10000 % 10
-  let c = input / 1000 % 10
-  let d = input / 100 % 10
-  let e = input / 10 % 10
-  let f = input % 10
+fn is_a_good_password(digits) {
+  let [a, b, c, d, e, f] = digits
   let double_exists = a == b || b == c || c == d || d == e || e == f
   double_exists && a <= b && b <= c && c <= d && d <= e && e <= f
 }
@@ -69,7 +64,8 @@ fn solve_a(current, end, passwords) {
   case current > end {
     True -> e_length(passwords)
     False -> {
-      case is_a_good_password(current) {
+      let digits = [current / 100000, current / 10000 % 10, current / 1000 % 10, current / 100 % 10, current / 10 % 10, current % 10]
+      case is_a_good_password(digits) {
         True -> solve_a(current + 1, end, [current | passwords])
         False -> solve_a(current + 1, end, passwords)
       }
@@ -77,8 +73,43 @@ fn solve_a(current, end, passwords) {
   }
 }
 
-fn solve_b(_start, _end) {
-  2
+fn the_double_is_lonely(digits, previous_digit, streak) {
+  case digits {
+    [] ->
+      case streak {
+        2 -> True
+        _ -> False
+      }
+    [digit | digits] -> {
+      case digit == previous_digit {
+        True -> the_double_is_lonely(digits, digit, streak + 1)
+        False ->
+          case streak {
+            2 -> True
+            _ -> the_double_is_lonely(digits, digit, 1)
+          }
+      }
+    }
+  }
+}
+
+fn solve_b(current, end, passwords) {
+  case current > end {
+    True -> e_length(passwords)
+    False -> {
+      let digits = [current / 100000, current / 10000 % 10, current / 1000 % 10, current / 100 % 10, current / 10 % 10, current % 10]
+      let passwords =
+        case is_a_good_password(digits) {
+          True ->
+            case the_double_is_lonely(digits, -1, 0) {
+              True -> [current | passwords]
+              False -> passwords
+            }
+          False -> passwords
+        }
+      solve_b(current + 1, end, passwords)
+    }
+  }
 }
 
 pub fn main(_) {
@@ -88,8 +119,8 @@ pub fn main(_) {
   let a = solve_a(start, end, [])
   e_io_put_chars(e_integer_to_binary(a))
   e_io_put_chars("\n")
-  // let b = solve_b(start, end)
-  // e_io_put_chars(e_integer_to_binary(b))
-  // e_io_put_chars("\n")
+  let b = solve_b(start, end, [])
+  e_io_put_chars(e_integer_to_binary(b))
+  e_io_put_chars("\n")
   0
 }
