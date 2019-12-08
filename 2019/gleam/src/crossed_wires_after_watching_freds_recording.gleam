@@ -34,7 +34,6 @@ external fn e_ordsets_from_list(list: List(a)) -> Ordset(a) = "ordsets" "from_li
 external fn e_ordsets_intersection(a: Ordset(a), b: Ordset(a)) -> Ordset(a) = "ordsets" "intersection"
 external fn e_ordsets_to_list(ordset: Ordset(a)) -> List(a) = "ordsets" "to_list"
 
-
 fn parse_single_input(string: String) -> struct(String, Int) {
   let direction = e_unicode_characters_to_binary(e_string_slice_with_length(string, 0, 1))
   let distance = e_binary_to_integer(e_unicode_characters_to_binary(e_string_slice(string, 1)))
@@ -63,9 +62,7 @@ fn points(input, acc) {
 fn compare_points_a(a, b) {
   let struct(a_x, a_y) = a
   let struct(b_x, b_y) = b
-  let distance_a = e_abs(a_x) + e_abs(a_y)
-  let distance_b = e_abs(b_x) + e_abs(b_y)
-  distance_a <= distance_b
+  e_abs(a_x) + e_abs(a_y) <= e_abs(b_x) + e_abs(b_y)
 }
 
 fn solve_a(first_input, second_input) {
