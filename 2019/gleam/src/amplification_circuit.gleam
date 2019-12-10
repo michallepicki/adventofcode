@@ -84,69 +84,69 @@ fn write(value, array, param_index) {
   e_array_set(e_array_get(param_index, array), value, array)
 }
 
-fn run_program(array, index, inputs, outputs) {
-  let struct(_third_param_mode, second_param_mode, first_param_mode, opcode) = parse_instruction(e_array_get(index, array))
+fn run_program(memory_state, program_counter, inputs, outputs) {
+  let struct(_third_param_mode, second_param_mode, first_param_mode, opcode) = parse_instruction(e_array_get(program_counter, memory_state))
   case opcode {
     Halt -> {
       outputs
     }
     Add -> {
-      let first_param = read(array, first_param_mode, index + 1)
-      let second_param = read(array, second_param_mode, index + 2)
-      let new_array = write(first_param + second_param, array, index + 3)
-      run_program(new_array, index + 4, inputs, outputs)
+      let first_param = read(memory_state, first_param_mode, program_counter + 1)
+      let second_param = read(memory_state, second_param_mode, program_counter + 2)
+      let new_memory_state = write(first_param + second_param, memory_state, program_counter + 3)
+      run_program(new_memory_state, program_counter + 4, inputs, outputs)
     }
     Multiply -> {
-      let first_param = read(array, first_param_mode, index + 1)
-      let second_param = read(array, second_param_mode, index + 2)
-      let new_array = write(first_param * second_param, array, index + 3)
-      run_program(new_array, index + 4, inputs, outputs)
+      let first_param = read(memory_state, first_param_mode, program_counter + 1)
+      let second_param = read(memory_state, second_param_mode, program_counter + 2)
+      let new_memory_state = write(first_param * second_param, memory_state, program_counter + 3)
+      run_program(new_memory_state, program_counter + 4, inputs, outputs)
     }
     Input -> {
       let [input | new_inputs] = inputs
-      let new_array = write(input, array, index + 1)
-      run_program(new_array, index + 2, new_inputs, outputs)
+      let new_memory_state = write(input, memory_state, program_counter + 1)
+      run_program(new_memory_state, program_counter + 2, new_inputs, outputs)
     }
     Output -> {
-      let output = read(array, first_param_mode, index + 1)
+      let output = read(memory_state, first_param_mode, program_counter + 1)
       let new_outputs = [output | outputs]
-      run_program(array, index + 2, inputs, new_outputs)
+      run_program(memory_state, program_counter + 2, inputs, new_outputs)
     }
     JumpIfTrue -> {
-      let first_param = read(array, first_param_mode, index + 1)
-      let second_param = read(array, second_param_mode, index + 2)
+      let first_param = read(memory_state, first_param_mode, program_counter + 1)
+      let second_param = read(memory_state, second_param_mode, program_counter + 2)
       case first_param {
-        0 -> run_program(array, index + 3, inputs, outputs)
-        _ -> run_program(array, second_param, inputs, outputs)
+        0 -> run_program(memory_state, program_counter + 3, inputs, outputs)
+        _ -> run_program(memory_state, second_param, inputs, outputs)
       }
     }
     JumpIfFalse -> {
-      let first_param = read(array, first_param_mode, index + 1)
-      let second_param = read(array, second_param_mode, index + 2)
+      let first_param = read(memory_state, first_param_mode, program_counter + 1)
+      let second_param = read(memory_state, second_param_mode, program_counter + 2)
       case first_param {
-        0 -> run_program(array, second_param, inputs, outputs)
-        _ -> run_program(array, index + 3, inputs, outputs)
+        0 -> run_program(memory_state, second_param, inputs, outputs)
+        _ -> run_program(memory_state, program_counter + 3, inputs, outputs)
       }
     }
     LessThan -> {
-      let first_param = read(array, first_param_mode, index + 1)
-      let second_param = read(array, second_param_mode, index + 2)
+      let first_param = read(memory_state, first_param_mode, program_counter + 1)
+      let second_param = read(memory_state, second_param_mode, program_counter + 2)
       let value = case first_param < second_param {
         True -> 1
         False -> 0
       }
-      let new_array = write(value, array, index + 3)
-      run_program(new_array, index + 4, inputs, outputs)
+      let new_memory_state = write(value, memory_state, program_counter + 3)
+      run_program(new_memory_state, program_counter + 4, inputs, outputs)
     }
     Equals -> {
-      let first_param = read(array, first_param_mode, index + 1)
-      let second_param = read(array, second_param_mode, index + 2)
+      let first_param = read(memory_state, first_param_mode, program_counter + 1)
+      let second_param = read(memory_state, second_param_mode, program_counter + 2)
       let value = case first_param == second_param {
         True -> 1
         False -> 0
       }
-      let new_array = write(value, array, index + 3)
-      run_program(new_array, index + 4, inputs, outputs)
+      let new_memory_state = write(value, memory_state, program_counter + 3)
+      run_program(new_memory_state, program_counter + 4, inputs, outputs)
     }
   }
 }
