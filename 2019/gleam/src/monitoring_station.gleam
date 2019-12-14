@@ -31,6 +31,8 @@ external fn e_lists_seq(from: Int, to: Int) -> List(Int) = "lists" "seq"
 external fn e_lists_append(list_of_lists: List(List(a))) -> List(a) = "lists" "append"
 external fn e_lists_split(n: Int, list: List(a)) -> struct(List(a), List(a)) = "lists" "split"
 external fn e_lists_zipwith(combine: fn(a, b) -> c, list1: List(a), list2: List(b)) -> List(c) = "lists" "zipwith"
+external fn e_lists_nth(n: Int, list: List(a)) -> a = "lists" "nth"
+external fn e_lists_sort(fun: fn(a, a) -> Bool, List(a)) -> List(a) = "lists" "sort"
 external type Array(a)
 external fn e_array_from_list(list: List(a)) -> Array(a) = "array" "from_list"
 external fn e_array_get(index: Int, array: Array(a)) -> a = "array" "get"
@@ -87,24 +89,6 @@ fn remove_nth(n, list, acc) {
   }
 }
 
-// enum Comparison {
-//   Further
-//   Same
-//   Closer
-// }
-
-// fn compare(coord1, coord2) {
-//   case coord1 - coord2 {
-//     0 -> Same
-//     difference -> {
-//       case difference < 0 {
-//         True -> Further
-//         False -> Closer
-//       }
-//     }
-//   }
-// }
-
 fn gcd(a, b) {
   case b == 0 {
     True -> a
@@ -112,27 +96,26 @@ fn gcd(a, b) {
   }
 }
 
-fn simplify(vector) {
-  let struct(numerator, denominator) = vector
-  case numerator == 0 || denominator == 0 {
+fn direction_vector(vector) {
+  let struct(x, y) = vector
+  case x == 0 || y == 0 {
     True -> {
-      case numerator == 0 {
-        True -> struct(numerator, denominator / e_abs(denominator))
-        False -> struct(numerator / e_abs(numerator), denominator)
+      case y == 0 {
+        True -> struct(x / e_abs(x), y)
+        False -> struct(x, y / e_abs(y))
       }
     }
     False -> {
-      let gcd = gcd(e_abs(numerator), e_abs(denominator))
-      struct(numerator / gcd, denominator / gcd)
+      let gcd = gcd(e_abs(x), e_abs(y))
+      struct(x / gcd, y / gcd)
     }
   }
 }
 
-fn compute_simplified_vector(station, asteroid) {
+fn relative_coordinates(station, asteroid) {
   let struct(x0, y0) = station
   let struct(x, y) = asteroid
-  let vector = struct(y0 - y, x0 - x)
-  simplify(vector)
+  struct(x - x0, y - y0)
 }
 
 fn count_visible(asteroids, station) {
@@ -140,12 +123,7 @@ fn count_visible(asteroids, station) {
   asteroids
   |> e_lists_map(
     fn(asteroid) {
-      // let struct(x, y) = asteroid
-      // let horizontally = compare(x0, x)
-      // let vertically = compare(y0, y)
-      // let line_struct =
-      compute_simplified_vector(station, asteroid)
-      // struct(line_struct)
+      direction_vector(relative_coordinates(station, asteroid))
     },
     _)
   |> e_sets_from_list(_)
@@ -153,19 +131,95 @@ fn count_visible(asteroids, station) {
   |> e_length(_)
 }
 
+fn distance_squared(vector) {
+  let struct(x, y) = vector
+  x * x + y * y
+}
+
+fn deploy_and_observe(station, asteroids) {
+  let struct(x0, y0) = station
+  asteroids
+  |> e_lists_map(
+    fn(asteroid) {
+      let relative = relative_coordinates(station, asteroid)
+      struct(relative, direction_vector(relative), distance_squared(relative), asteroid)
+    },
+    _)
+}
+
+fn negation(a) { 0 - a }
+
+fn compare_asteroids(a, b) {
+  let struct(a_relative, _, a_distance, _) = a
+  let struct(xa, ya) = a_relative
+  let struct(b_relative, _, b_distance, _) = b
+  let struct(xb, yb) = b_relative
+  case xa >= 0 && xb < 0 {
+    True -> True
+    False -> {
+      case xa < 0 && xb >= 0 {
+        True -> False
+        False -> {
+          let det = xa * negation(yb) - xb * negation(ya)
+          case det < 0 {
+            True -> True
+            False -> {
+              case det > 0 {
+                True -> False
+                False -> {
+                  a_distance <= b_distance
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+fn invalid_asteroid() { struct(struct(0, 0), struct(0, 0), 0, struct(-1,-1)) }
+
+fn vaporize(n, asteroids, acc, last_vaporized) {
+  case n {
+    0 -> last_vaporized
+    _ -> case asteroids {
+      [] -> vaporize(n, e_lists_reverse(acc), [], invalid_asteroid())
+      [asteroid | rest] -> {
+        let struct(_, last_direction, _, _) = last_vaporized
+        let struct(_, direction, _, _) = asteroid
+        case direction == last_direction {
+          True -> vaporize(n, rest, [asteroid | acc], last_vaporized)
+          False -> vaporize(n - 1, rest, acc, asteroid)
+        }
+      }
+    }
+  }
+}
+
 pub fn main(_) {
   let Ok(file) = e_file_open("../10", [Binary])
   let asteroids = parse_input(file, struct(0, []))
   let n = e_length(asteroids)
   
-  e_lists_seq(0, n - 1)
-  |> e_lists_map(
-    fn(index){
-      let struct(station, asteroids) = remove_nth(index, asteroids, [])
-      count_visible(asteroids, station)
-    },
-    _)
-  |> e_lists_max(_)
-  |> e_display(_)
+  let struct(visible_count, station, visible_asteroids) =
+    e_lists_seq(0, n - 1)
+    |> e_lists_map(
+      fn(index){
+        let struct(station, other_asteroids) = remove_nth(index, asteroids, [])
+        struct(count_visible(other_asteroids, station), station, other_asteroids)
+      },
+      _)
+    |> e_lists_max(_)
+
+  e_display(visible_count)
+
+  let struct(_, _, _, vaporized200) =
+    visible_asteroids
+    |> deploy_and_observe(station, _)
+    |> e_lists_sort(fn(a, b) { compare_asteroids(a, b) }, _ )
+    |> vaporize(200, _, [], invalid_asteroid())
+
+  e_display(vaporized200)
   0
 }
