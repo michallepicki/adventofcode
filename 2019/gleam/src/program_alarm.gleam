@@ -6,13 +6,13 @@ external fn e_file_open(path: String, modes: List(Any)) -> Result(Fd, Any) = "fi
 external fn e_file_read_line(file: Fd) -> Result(String, Any) = "file" "read_line"
 
 external fn e_string_trim(string: String) -> String = "string" "trim"
-enum Where {
+type Where {
   Leading
   Trailing
   All
 }
 external fn e_string_split(string: String, pattern: String, where: Where) -> List(String) = "string" "split"
-external fn e_string_to_integer(string: String) -> struct(Int, String) = "string" "to_integer"
+external fn e_string_to_integer(string: String) -> tuple(Int, String) = "string" "to_integer"
 
 external fn e_lists_map(function: fn(a) -> b, list: List(a)) -> List(b) = "lists" "map"
 
@@ -23,8 +23,8 @@ external fn e_array_set(index: Int, value: a, array: Array(a)) -> Array(a) = "ar
 
 external fn e_integer_to_binary(int: Int) -> String = "erlang" "integer_to_binary"
 
-fn struct2_1(s: struct(a, b)) -> a {
-  let struct(x, _) = s
+fn struct2_1(s: tuple(a, b)) -> a {
+  let tuple(x, _) = s
   x
 }
 
@@ -79,9 +79,9 @@ fn solve_b(initial_array, array, index, noun, verb) {
               100 * noun + verb
             }
             _ -> {
-              let struct(new_noun, new_verb) = case struct(noun, verb) {
-                struct(_, 99)    -> struct(noun + 1, 0)
-                struct(_, _) -> struct(noun, verb + 1)
+              let tuple(new_noun, new_verb) = case tuple(noun, verb) {
+                tuple(_, 99)    -> tuple(noun + 1, 0)
+                tuple(_, _) -> tuple(noun, verb + 1)
               }
               solve_b(initial_array, initial_array, -1, new_noun, new_verb)
             }

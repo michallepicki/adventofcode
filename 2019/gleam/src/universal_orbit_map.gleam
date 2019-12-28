@@ -2,13 +2,13 @@ external type Any
 external fn e_display(a) -> Bool = "erlang" "display"
 
 external type Fd
-enum FileMode {
+type FileMode {
   Binary
 }
 external fn e_file_open(path: String, modes: List(FileMode)) -> Result(Fd, Any) = "file" "open"
 external fn e_file_read_line(file: Fd) -> Result(String, Any) = "file" "read_line"
 
-enum Where {
+type Where {
   Leading
   Trailing
   All
@@ -54,12 +54,12 @@ fn total_orbits(graph, vertex, acc) {
 }
 
 fn distance(graph, to, search) {
-  let [struct(current_vertex, current_distance) | remaining_search] = search
+  let [tuple(current_vertex, current_distance) | remaining_search] = search
   case current_vertex == to {
     True -> current_distance - 2
     False -> {
       let neighbours = e_lists_merge([e_digraph_out_neighbours(graph, current_vertex), e_digraph_in_neighbours(graph, current_vertex)])
-      let neighbours_with_distance = e_lists_map(fn(neighbour) { struct(neighbour, current_distance + 1) }, neighbours)
+      let neighbours_with_distance = e_lists_map(fn(neighbour) { tuple(neighbour, current_distance + 1) }, neighbours)
       e_digraph_del_vertex(graph, current_vertex)
       distance(graph, to, e_lists_merge([remaining_search, neighbours_with_distance]))
     }
@@ -71,6 +71,6 @@ pub fn main(_) {
   let graph = e_digraph_new()
   populate_graph(file, graph)
   e_display(total_orbits(graph, "COM", 0))
-  e_display(distance(graph, "SAN", [struct("YOU", 0)]))
+  e_display(distance(graph, "SAN", [tuple("YOU", 0)]))
   0
 }

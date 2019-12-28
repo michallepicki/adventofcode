@@ -3,14 +3,14 @@ external type Any
 external fn e_io_put_chars(a) -> Any = "io" "put_chars"
 
 external type Fd
-enum FileMode {
+type FileMode {
   Binary
 }
 external fn e_file_open(path: String, modes: List(FileMode)) -> Result(Fd, Any) = "file" "open"
 external fn e_file_read_line(file: Fd) -> Result(String, Any) = "file" "read_line"
 
 external fn e_string_trim(string: String) -> String = "string" "trim"
-enum Where {
+type Where {
   Leading
   Trailing
   All
@@ -27,7 +27,7 @@ external fn e_array_set(index: Int, value: a, array: Array(a)) -> Array(a) = "ar
 external fn e_binary_to_integer(string: String) -> Int = "erlang" "binary_to_integer"
 external fn e_integer_to_binary(int: Int) -> String = "erlang" "integer_to_binary"
 
-enum Opcode {
+type Opcode {
   Halt
   Add
   Multiply
@@ -38,7 +38,7 @@ enum Opcode {
   LessThan
   Equals
 }
-enum Mode {
+type Mode {
   Position
   Immediate
 }
@@ -66,7 +66,7 @@ fn parse_instruction(instruction) {
     7 -> LessThan
     8 -> Equals
   }
-  struct(third_param_mode, second_param_mode, first_param_mode, opcode)
+  tuple(third_param_mode, second_param_mode, first_param_mode, opcode)
 }
 
 fn read(array, mode, param_index) {
@@ -80,7 +80,7 @@ fn write(value, array, param_index) {
 }
 
 fn solve(array, index, inputs, outputs) {
-  let struct(_third_param_mode, second_param_mode, first_param_mode, opcode) = parse_instruction(e_array_get(index, array))
+  let tuple(_third_param_mode, second_param_mode, first_param_mode, opcode) = parse_instruction(e_array_get(index, array))
   case opcode {
     Halt -> {
       outputs

@@ -6,7 +6,7 @@ external fn e_file_open(path: String, modes: List(Any)) -> Result(Fd, Any) = "fi
 external fn e_file_read_line(file: Fd) -> Result(String, Any) = "file" "read_line"
 
 external fn e_string_trim(string: String) -> String = "string" "trim"
-enum Where {
+type Where {
   Leading
   Trailing
   All
@@ -42,46 +42,46 @@ external fn e_maps_get(key: k, map: Map(k, v)) -> v = "maps" "get"
 // external fn e_maps_get_with_default(key: k, map: Map(k, v), default: v) -> v = "maps" "get"
 
 
-fn parse_single_input(string: String) -> struct(String, Int) {
+fn parse_single_input(string: String) -> tuple(String, Int) {
   let direction = e_unicode_characters_to_binary(e_string_slice_with_length(string, 0, 1))
   let distance = e_binary_to_integer(e_unicode_characters_to_binary(e_string_slice(string, 1)))
-  struct(direction, distance)
+  tuple(direction, distance)
 }
 
 fn points(single_input, acc) {
-  let struct(current_coords, wire) = acc
-  let struct(x, y) = current_coords
-  let struct(direction, steps) = single_input
+  let tuple(current_coords, wire) = acc
+  let tuple(x, y) = current_coords
+  let tuple(direction, steps) = single_input
   case steps {
     0 -> acc
     _ -> {
       let new_point =
         case direction {
-          "R" -> struct(x + 1, y)
-          "L" -> struct(x - 1, y)
-          "U" -> struct(x, y + 1)
-          "D" -> struct(x, y - 1)
+          "R" -> tuple(x + 1, y)
+          "L" -> tuple(x - 1, y)
+          "U" -> tuple(x, y + 1)
+          "D" -> tuple(x, y - 1)
         }
-      points(struct(direction, steps - 1), struct(new_point, [new_point | wire]))
+      points(tuple(direction, steps - 1), tuple(new_point, [new_point | wire]))
     }
   }
 }
 
 fn manhattan_distance(point) {
-  let struct(x, y) = point
+  let tuple(x, y) = point
   e_abs(x) + e_abs(y)
 }
 
 fn solve_a(first_input, second_input) {
   // get points for first wire
-  let struct(_, first_wire) =
+  let tuple(_, first_wire) =
     first_input
-    |> e_lists_foldl(fn(input, acc) { points(input, acc) }, struct(struct(0, 0), []), _)
+    |> e_lists_foldl(fn(input, acc) { points(input, acc) }, tuple(tuple(0, 0), []), _)
   let first_wire = e_ordsets_from_list(first_wire)
   // get points for second wire
-  let struct(_, second_wire) =
+  let tuple(_, second_wire) =
     second_input
-    |> e_lists_foldl(fn(input, acc) { points(input, acc) }, struct(struct(0, 0), []), _)
+    |> e_lists_foldl(fn(input, acc) { points(input, acc) }, tuple(tuple(0, 0), []), _)
   let second_wire = e_ordsets_from_list(second_wire)
 
   first_wire
@@ -93,8 +93,8 @@ fn solve_a(first_input, second_input) {
 }
 
 fn stash_index(point, acc) {
-  let struct(index, map) = acc
-  struct(index + 1, e_maps_put(point, index, map))
+  let tuple(index, map) = acc
+  tuple(index + 1, e_maps_put(point, index, map))
 }
 
 fn combined_steps(point, first_wire_indexes, second_wire_indexes) {
@@ -103,23 +103,23 @@ fn combined_steps(point, first_wire_indexes, second_wire_indexes) {
 
 fn solve_b(first_input, second_input) {
   // get points and indexes for first wire
-  let struct(_, first_wire) =
+  let tuple(_, first_wire) =
     first_input
-    |> e_lists_foldl(fn(a, b) { points(a, b) }, struct(struct(0, 0), []), _)
+    |> e_lists_foldl(fn(a, b) { points(a, b) }, tuple(tuple(0, 0), []), _)
   let first_wire_set = e_ordsets_from_list(first_wire)
-  let struct(_, first_wire_indexes) =
+  let tuple(_, first_wire_indexes) =
   first_wire
   |> e_lists_reverse(_)
-  |> e_lists_foldl(fn(point, acc) { stash_index(point, acc) }, struct(1, e_maps_new()), _)
+  |> e_lists_foldl(fn(point, acc) { stash_index(point, acc) }, tuple(1, e_maps_new()), _)
   // get points and indexes for second wire
-  let struct(_, second_wire) =
+  let tuple(_, second_wire) =
     second_input
-    |> e_lists_foldl(fn(a, b) { points(a, b) }, struct(struct(0, 0), []), _)
+    |> e_lists_foldl(fn(a, b) { points(a, b) }, tuple(tuple(0, 0), []), _)
   let second_wire_set = e_ordsets_from_list(second_wire)
-  let struct(_, second_wire_indexes) =
+  let tuple(_, second_wire_indexes) =
     second_wire
     |> e_lists_reverse(_)
-    |> e_lists_foldl(fn(point, acc) { stash_index(point, acc) }, struct(1, e_maps_new()), _)
+    |> e_lists_foldl(fn(point, acc) { stash_index(point, acc) }, tuple(1, e_maps_new()), _)
 
   first_wire_set
   |> e_ordsets_intersection(_, second_wire_set)

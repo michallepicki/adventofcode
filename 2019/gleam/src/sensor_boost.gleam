@@ -2,14 +2,14 @@ external fn e_display(a) -> Bool = "erlang" "display"
 external type Any
 
 external type Fd
-enum FileMode {
+type FileMode {
   Binary
 }
 external fn e_file_open(path: String, modes: List(FileMode)) -> Result(Fd, Any) = "file" "open"
 external fn e_file_read_line(file: Fd) -> Result(String, Any) = "file" "read_line"
 
 external fn e_string_trim(string: String) -> String = "string" "trim"
-enum Where {
+type Where {
   Leading
   Trailing
   All
@@ -32,7 +32,7 @@ external fn e_binary_to_integer(string: String) -> Int = "erlang" "binary_to_int
 external fn e_hd(list: List(a)) -> a = "erlang" "hd"
 external fn e_length(list: List(a)) -> Int = "erlang" "length"
 
-enum Opcode {
+type Opcode {
   Halt
   Add
   Multiply
@@ -45,7 +45,7 @@ enum Opcode {
   SetRelativeBase
   Unknown
 }
-enum ParamMode {
+type ParamMode {
   Position
   Immediate
   Relative
@@ -79,7 +79,7 @@ fn parse_instruction(instruction) {
     9 -> SetRelativeBase
     _ -> Unknown
   }
-  struct(param3_mode, param2_mode, param1_mode, opcode)
+  tuple(param3_mode, param2_mode, param1_mode, opcode)
 }
 
 fn read(array, relative_base, mode, param_index) {
@@ -98,54 +98,54 @@ fn write(value, relative_base, mode, array, param_index) {
 }
 
 fn run_program(program_state) {
-  let struct(_last_opcode, memory, program_counter, relative_base, inputs, outputs) = program_state
-  let struct(param3_mode, param2_mode, param1_mode, opcode) = parse_instruction(e_array_get(program_counter, memory))
+  let tuple(_last_opcode, memory, program_counter, relative_base, inputs, outputs) = program_state
+  let tuple(param3_mode, param2_mode, param1_mode, opcode) = parse_instruction(e_array_get(program_counter, memory))
   case opcode {
     Halt -> {
-      struct(Halt, memory, program_counter, relative_base, inputs, outputs)
+      tuple(Halt, memory, program_counter, relative_base, inputs, outputs)
     }
     Add -> {
       let param1 = read(memory, relative_base, param1_mode, program_counter + 1)
       let param2 = read(memory, relative_base, param2_mode, program_counter + 2)
       let new_memory = write(param1 + param2, relative_base, param3_mode, memory, program_counter + 3)
-      run_program(struct(Add, new_memory, program_counter + 4, relative_base, inputs, outputs))
+      run_program(tuple(Add, new_memory, program_counter + 4, relative_base, inputs, outputs))
     }
     Multiply -> {
       let param1 = read(memory, relative_base, param1_mode, program_counter + 1)
       let param2 = read(memory, relative_base, param2_mode, program_counter + 2)
       let new_memory = write(param1 * param2, relative_base, param3_mode, memory, program_counter + 3)
-      run_program(struct(Multiply, new_memory, program_counter + 4, relative_base, inputs, outputs))
+      run_program(tuple(Multiply, new_memory, program_counter + 4, relative_base, inputs, outputs))
     }
     Input -> {
       case inputs {
         [] -> {
-          struct(Input, memory, program_counter, relative_base, inputs, outputs)
+          tuple(Input, memory, program_counter, relative_base, inputs, outputs)
         }
         [input | new_inputs] -> {
           let new_memory = write(input, relative_base, param1_mode, memory, program_counter + 1)
-          run_program(struct(Input, new_memory, program_counter + 2, relative_base, new_inputs, outputs))
+          run_program(tuple(Input, new_memory, program_counter + 2, relative_base, new_inputs, outputs))
         }
       }
     }
     Output -> {
       let output = read(memory, relative_base, param1_mode, program_counter + 1)
       let new_outputs = [output | outputs]
-      run_program(struct(Output, memory, program_counter + 2, relative_base, inputs, new_outputs))
+      run_program(tuple(Output, memory, program_counter + 2, relative_base, inputs, new_outputs))
     }
     JumpIfTrue -> {
       let param1 = read(memory, relative_base, param1_mode, program_counter + 1)
       let param2 = read(memory, relative_base, param2_mode, program_counter + 2)
       case param1 {
-        0 -> run_program(struct(JumpIfTrue, memory, program_counter + 3, relative_base, inputs, outputs))
-        _ -> run_program(struct(JumpIfTrue, memory, param2, relative_base, inputs, outputs))
+        0 -> run_program(tuple(JumpIfTrue, memory, program_counter + 3, relative_base, inputs, outputs))
+        _ -> run_program(tuple(JumpIfTrue, memory, param2, relative_base, inputs, outputs))
       }
     }
     JumpIfFalse -> {
       let param1 = read(memory, relative_base, param1_mode, program_counter + 1)
       let param2 = read(memory, relative_base, param2_mode, program_counter + 2)
       case param1 {
-        0 -> run_program(struct(JumpIfFalse, memory, param2, relative_base, inputs, outputs))
-        _ -> run_program(struct(JumpIfFalse, memory, program_counter + 3, relative_base, inputs, outputs))
+        0 -> run_program(tuple(JumpIfFalse, memory, param2, relative_base, inputs, outputs))
+        _ -> run_program(tuple(JumpIfFalse, memory, program_counter + 3, relative_base, inputs, outputs))
       }
     }
     LessThan -> {
@@ -156,7 +156,7 @@ fn run_program(program_state) {
         False -> 0
       }
       let new_memory = write(value, relative_base, param3_mode, memory, program_counter + 3)
-      run_program(struct(LessThan, new_memory, program_counter + 4, relative_base, inputs, outputs))
+      run_program(tuple(LessThan, new_memory, program_counter + 4, relative_base, inputs, outputs))
     }
     Equals -> {
       let param1 = read(memory, relative_base, param1_mode, program_counter + 1)
@@ -166,12 +166,12 @@ fn run_program(program_state) {
         False -> 0
       }
       let new_memory = write(value, relative_base, param3_mode, memory, program_counter + 3)
-      run_program(struct(Equals, new_memory, program_counter + 4, relative_base, inputs, outputs))
+      run_program(tuple(Equals, new_memory, program_counter + 4, relative_base, inputs, outputs))
     }
     SetRelativeBase -> {
       let param1 = read(memory, relative_base, param1_mode, program_counter + 1)
       let new_relative_base = relative_base + param1
-      run_program(struct(SetRelativeBase, memory, program_counter + 2, new_relative_base, inputs, outputs))
+      run_program(tuple(SetRelativeBase, memory, program_counter + 2, new_relative_base, inputs, outputs))
     }
   }
 }
@@ -187,14 +187,14 @@ pub fn main(_) {
     |> e_lists_map(e_binary_to_integer(_), _)
     |> e_array_from_list(_, 0)
 
-  let struct(_, _, _, _, _, outputs) =
-    struct(Unknown, software, 0, 0, [1], [])
+  let tuple(_, _, _, _, _, outputs) =
+    tuple(Unknown, software, 0, 0, [1], [])
     |> run_program(_)
 
   e_display(e_lists_reverse(outputs))
 
-  let struct(_, _, _, _, _, outputs) =
-    struct(Unknown, software, 0, 0, [2], [])
+  let tuple(_, _, _, _, _, outputs) =
+    tuple(Unknown, software, 0, 0, [2], [])
     |> run_program(_)
 
   e_display(e_lists_reverse(outputs))

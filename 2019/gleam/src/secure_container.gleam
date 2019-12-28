@@ -2,14 +2,14 @@ external type Any
 external fn e_io_put_chars(a) -> Any = "io" "put_chars"
 
 external type Fd
-enum FileMode {
+type FileMode {
   Binary
 }
 external fn e_file_open(path: String, modes: List(FileMode)) -> Result(Fd, Any) = "file" "open"
 external fn e_file_read_line(file: Fd) -> Result(String, Any) = "file" "read_line"
 
 external fn e_string_trim(string: String) -> String = "string" "trim"
-enum Where {
+type Where {
   Leading
   Trailing
   All
@@ -22,7 +22,7 @@ external fn e_integer_to_binary(int: Int) -> String = "erlang" "integer_to_binar
 
 fn parse_input(input) {
   let [range_start_string, range_end_string] = e_string_split(input, "-", All)
-  struct(e_binary_to_integer(range_start_string), e_binary_to_integer(range_end_string))
+  tuple(e_binary_to_integer(range_start_string), e_binary_to_integer(range_end_string))
 }
 
 fn is_a_good_password(digits) {
@@ -86,7 +86,7 @@ fn solve_b(current, end, passwords) {
 pub fn main(_) {
   let Ok(file) = e_file_open("../4", [Binary])
   let Ok(input) = e_file_read_line(file)
-  let struct(start, end) = parse_input(e_string_trim(input))
+  let tuple(start, end) = parse_input(e_string_trim(input))
   let a = solve_a(start, end, [])
   e_io_put_chars(e_integer_to_binary(a))
   e_io_put_chars("\n")

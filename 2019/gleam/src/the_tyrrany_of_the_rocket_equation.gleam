@@ -10,7 +10,7 @@ external fn e_string_to_integer(string: String) -> Tuple = "string" "to_integer"
 
 external fn e_lists_reverse(list: List(a)) -> List(a) = "lists" "reverse"
 
-external fn e_integer_tuple_element(index: Int, tuple: Tuple) -> Int = "erlang" "element"
+external fn e_integer_tuple_element(index: Int, some_tuple: Tuple) -> Int = "erlang" "element"
 external fn e_integer_to_binary(int: Int) -> String = "erlang" "integer_to_binary"
 
 fn read_puzzle_input(file, accumulator) {
