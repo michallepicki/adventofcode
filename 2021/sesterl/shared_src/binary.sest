@@ -8,14 +8,14 @@ module Binary = struct
     to_int(Binary) -> erlang:binary_to_integer(Binary).
   ```
 
-  type where =
-  | Leading
-  | Trailing
-  | All
+  type split_target =
+  | #[atom("leading")] SplitLeading
+  | #[atom("trailing")] SplitTrailing
+  | #[atom("all")] SplitAll
 
-  val do_split : fun(binary, binary, option<where>) -> list<binary> = external 3 ```
-    do_split(Binary, Pattern, MaybeWhere) ->
-      case MaybeWhere of
+  val do_split : fun(binary, binary, option<split_target>) -> list<binary> = external 3 ```
+    do_split(Binary, Pattern, MaybeSplitTarget) ->
+      case MaybeSplitTarget of
         error -> string:split(Binary, Pattern);
         {ok, Where} -> string:split(Binary, Pattern, Where)
       end.
