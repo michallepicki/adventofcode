@@ -1,0 +1,11 @@
+module Binary = struct
+
+  val trim : fun(binary) -> binary = external 1 ```
+    trim(Binary) -> string:trim(Binary).
+  ```
+
+  val to_integer : fun(binary) -> int = external 1 ```
+    to_integer(Binary) -> erlang:binary_to_integer(Binary).
+  ```
+
+end

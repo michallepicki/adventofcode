@@ -1,37 +1,13 @@
+import File
+import Binary
+
 module Main = struct
-  type file_descriptor =
-    | FileDescriptorDummy
-
-  val file_open : fun(binary) -> option<file_descriptor> = external 1 ```
-    file_open(Path) ->
-      case file:open(Path, [binary]) of
-        {ok, Fd} -> {ok, Fd};
-        _ -> error
-      end.
-  ```
-
-  type file_read_error =
-    | Eof
-    | OtherFileReadError
-
-  val file_read_line : fun(file_descriptor) -> result<binary, file_read_error> = external 1 ```
-    file_read_line(FileDescriptor) ->
-      case file:read_line(FileDescriptor) of
-        {ok, Data} -> {ok, Data};
-        eof -> {error, eof};
-        _ -> {error, other_file_read_error}
-      end.
-  ```
-
-  val binary_trim : fun(binary) -> binary = external 1 ```binary_trim(Binary) -> string:trim(Binary).```
-
-  val binary_to_integer : fun(binary) -> int = external 1 ```binary_to_integer(Binary) -> erlang:binary_to_integer(Binary).```
 
   val rec count_measurement_increases(file, maybe_prev1, maybe_prev2, maybe_prev3, p1_count, p2_count) =
-    case file_read_line(file) of
+    case File.read_line(file) of
     | Error(_) -> {p1_count, p2_count}
     | Ok(line) ->
-        let measurement = binary_to_integer(binary_trim(line)) in
+        let measurement = Binary.to_integer(Binary.trim(line)) in
         let new_p1_count =
           case maybe_prev3 of
           | None -> p1_count
@@ -54,8 +30,9 @@ module Main = struct
     end
 
   val main() =
-    let Some(file) = file_open("../../1") in
+    let Some(file) = File.open_file("../../1") in
     let {p1, p2} = count_measurement_increases(file, None, None, None, 0, 0) in
     let _ = print_debug(p1) in
     print_debug(p2)
+
 end

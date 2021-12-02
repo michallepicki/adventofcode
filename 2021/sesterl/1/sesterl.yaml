@@ -10,6 +10,7 @@ main_module: "Main"
 
 source_directories:
   - "src"
+  - "../shared_src"
 
 # OPTIONAL CONFIG (default values shown)
 

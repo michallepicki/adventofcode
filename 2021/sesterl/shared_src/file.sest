@@ -1,0 +1,28 @@
+module File = struct
+
+  type descriptor =
+      | FileDescriptorDummy
+
+  /* open is a keyword so can't be our function name */
+  val open_file : fun(binary) -> option<descriptor> = external 1 ```
+    open_file(Path) ->
+      case file:open(Path, [binary]) of
+        {ok, Fd} -> {ok, Fd};
+        _ -> error
+      end.
+  ```
+
+  type read_error =
+    | Eof
+    | OtherFileReadError
+
+  val read_line : fun(descriptor) -> result<binary, read_error> = external 1 ```
+    read_line(FileDescriptor) ->
+      case file:read_line(FileDescriptor) of
+        {ok, Data} -> {ok, Data};
+        eof -> {error, eof};
+        _ -> {error, other_file_read_error}
+      end.
+  ```
+
+end
