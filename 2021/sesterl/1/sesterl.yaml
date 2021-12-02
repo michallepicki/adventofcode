@@ -1,0 +1,31 @@
+# REQUIRED CONFIG
+
+# Package name is used to derive a prefix for resulting Erlang modules,
+# e.g. this will cause all modules to be prefixed with "HelloSesterl."
+package: "sonar_sweep"
+
+# Main module is the only interface to a package from outside world.
+# It has to exist and can't be imported by modules in that package.
+main_module: "Main"
+
+source_directories:
+  - "src"
+
+# OPTIONAL CONFIG (default values shown)
+
+# test_directories: []
+
+dependencies:
+  - name: "sesterl_stdlib"
+    source:
+      type: "git"
+      repository: "https://github.com/gfngfn/sesterl_stdlib"
+      spec:
+        type: "tag"
+        value: "v0.4.0"
+
+# test_dependencies: []
+
+# erlang:
+#   output_directory: "_generated"
+#   test_output_directory: "_generated_test"
