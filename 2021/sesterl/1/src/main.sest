@@ -7,7 +7,7 @@ module Main = struct
     case File.read_line(file) of
     | Error(_) -> {p1_count, p2_count}
     | Ok(line) ->
-        let measurement = Binary.to_integer(Binary.trim(line)) in
+        let measurement = Binary.to_int(Binary.trim(line)) in
         let new_p1_count =
           case maybe_prev3 of
           | None -> p1_count

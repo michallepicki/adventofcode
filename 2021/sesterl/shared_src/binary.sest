@@ -4,8 +4,24 @@ module Binary = struct
     trim(Binary) -> string:trim(Binary).
   ```
 
-  val to_integer : fun(binary) -> int = external 1 ```
-    to_integer(Binary) -> erlang:binary_to_integer(Binary).
+  val to_int : fun(binary) -> int = external 1 ```
+    to_int(Binary) -> erlang:binary_to_integer(Binary).
   ```
+
+  type where =
+  | Leading
+  | Trailing
+  | All
+
+  val do_split : fun(binary, binary, option<where>) -> list<binary> = external 3 ```
+    do_split(Binary, Pattern, MaybeWhere) ->
+      case MaybeWhere of
+        error -> string:split(Binary, Pattern);
+        {ok, Where} -> string:split(Binary, Pattern, Where)
+      end.
+  ```
+
+  val split(bin, pattern, ?where where) =
+    do_split(bin, pattern, where)
 
 end
