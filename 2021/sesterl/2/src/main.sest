@@ -4,9 +4,9 @@ import Binary
 module Main = struct
 
   type command =
-  | Forward(int)
-  | Down(int)
-  | Up(int)
+    | Forward(int)
+    | Down(int)
+    | Up(int)
 
   val rec parse_input(file, acc) =
     case File.read_line(file) of

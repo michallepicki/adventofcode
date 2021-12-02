@@ -1,7 +1,7 @@
 module File = struct
 
   type descriptor =
-      | FileDescriptorDummy
+    | FileDescriptorDummy
 
   /* open is a keyword so can't be our function name */
   val open_file : fun(binary) -> option<descriptor> = external 1 ```

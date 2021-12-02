@@ -9,9 +9,9 @@ module Binary = struct
   ```
 
   type split_target =
-  | #[atom("leading")] SplitLeading
-  | #[atom("trailing")] SplitTrailing
-  | #[atom("all")] SplitAll
+    | #[atom("leading")] SplitLeading
+    | #[atom("trailing")] SplitTrailing
+    | #[atom("all")] SplitAll
 
   val do_split : fun(binary, binary, option<split_target>) -> list<binary> = external 3 ```
     do_split(Binary, Pattern, MaybeSplitTarget) ->
