@@ -1,0 +1,49 @@
+import File
+import Binary
+
+module Main = struct
+
+  type command =
+  | Forward(int)
+  | Down(int)
+  | Up(int)
+
+  val rec parse_input(file, acc) =
+    case File.read_line(file) of
+    | Error(_) -> Stdlib.List.reverse(acc)
+    | Ok(line) ->
+        let direction :: amount_bin :: [] = Binary.split(Binary.trim(line), " ") in
+        let amount = Binary.to_int(amount_bin) in
+        let command = case direction of
+          | "forward" -> Forward(amount)
+          | "down" -> Down(amount)
+          | "up" -> Up(amount)
+        end in
+        parse_input(file, command :: acc)
+    end
+
+  val rec navigate(commands, horizontal, depth) =
+    case commands of
+    | [] -> {horizontal, depth}
+    | Forward(x) :: rest -> navigate(rest, horizontal + x, depth)
+    | Down(x) :: rest -> navigate(rest, horizontal, depth + x)
+    | Up(x) :: rest -> navigate(rest, horizontal, depth - x)
+    end
+
+  val rec navigate2(commands, horizontal, depth, aim) =
+    case commands of
+    | [] -> {horizontal, depth}
+    | Down(x) :: rest -> navigate2(rest, horizontal, depth, aim + x)
+    | Up(x) :: rest -> navigate2(rest, horizontal, depth, aim - x)
+    | Forward(x) :: rest -> navigate2(rest, horizontal + x, depth + (aim * x), aim)
+    end
+
+  val main() =
+    let Some(file) = File.open_file("../../2") in
+    let input = parse_input(file, []) in
+    let {horizontal, depth} = navigate(input, 0, 0) in
+    let _ = print_debug(horizontal * depth) in
+    let {horizontal2, depth2} = navigate2(input, 0, 0, 0) in
+    print_debug(horizontal2 * depth2)
+
+end
