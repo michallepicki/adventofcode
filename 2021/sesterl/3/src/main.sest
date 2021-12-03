@@ -29,15 +29,19 @@ module Main = struct
   
   val flip_bit(x) = if x == 1 then 0 else 1
 
-  val part_1(input, n) =
+  val get_gamma_rating(input) =
+    let n = Stdlib.List.length(input) in
     let first_line :: rest = input in
     let sum_rows_fun = fun(acc, row) -> zip_with(fun(a, b) -> a + b end, row, acc, []) end in
     let ones_per_position = Stdlib.List.foldl(sum_rows_fun, first_line, rest) in
-    let gamma_rating = Stdlib.List.map(fun(x) -> if x > (n - x) then 1 else 0 end, ones_per_position) in
+    Stdlib.List.map(fun(x) -> if x > (n - x) then 1 else 0 end, ones_per_position)
+
+  val part_1(input) =
+    let gamma_rating = get_gamma_rating(input) in
     let epsilon_rating = Stdlib.List.map(flip_bit, gamma_rating) in
     print_debug(rating_to_decimal(gamma_rating, 0) * rating_to_decimal(epsilon_rating, 0))
 
-  val rec get_rating(input, rating_digit_fun, acc) =
+  val rec get_rating2(input, rating_digit_fun, acc) =
     let n = Stdlib.List.length(input) in
     case input of
     | last_row :: [] -> Stdlib.List.append(Stdlib.List.reverse(acc), last_row)
@@ -57,23 +61,22 @@ module Main = struct
             if x == digit then Some(rest) else None
           end,
           input) in
-      get_rating(new_input, rating_digit_fun, digit :: acc)
+      get_rating2(new_input, rating_digit_fun, digit :: acc)
     end
 
-  val oxygen_rating_fun(x, n) = if x >= (n - x) then 1 else 0
+  val get_oxygen_digit(x, n) = if x >= (n - x) then 1 else 0
 
-  val co2_scrubber_rating_fun(x, n) = flip_bit(oxygen_rating_fun(x, n))
+  val get_co2_digit(x, n) = flip_bit(get_oxygen_digit(x, n))
 
   val part_2(input) =
-    let oxygen_rating = get_rating(input, oxygen_rating_fun, []) in
-    let co2_scrubber_rating = get_rating(input, co2_scrubber_rating_fun, []) in
-    print_debug(rating_to_decimal(oxygen_rating, 0) * rating_to_decimal(co2_scrubber_rating, 0))
+    let oxygen = get_rating2(input, get_oxygen_digit, []) in
+    let co2 = get_rating2(input, get_co2_digit, []) in
+    print_debug(rating_to_decimal(oxygen, 0) * rating_to_decimal(co2, 0))
 
   val main() =
     let Some(file) = File.open_file("../../3") in
     let input = parse_input(file, []) in
-    let n = Stdlib.List.length(input) in
-    let _ = part_1(input, n) in
+    let _ = part_1(input) in
     part_2(input)
 
 end
