@@ -18,8 +18,7 @@ module Main = struct
     | {[], _} -> Stdlib.List.reverse(acc)
     | {_, []} -> Stdlib.List.reverse(acc)
     | {l :: lrest, r :: rrest} ->
-      let x = zip_fun(l, r) in
-      zip_with(zip_fun, lrest, rrest, x :: acc)
+      zip_with(zip_fun, lrest, rrest, zip_fun(l, r) :: acc)
     end
 
   val rec rating_to_decimal(digits_list, acc) =
@@ -27,18 +26,16 @@ module Main = struct
     | [] -> acc
     | x :: rest -> rating_to_decimal(rest, (acc * 2) + x)
     end
+  
+  val flip_bit(x) = if x == 1 then 0 else 1
 
   val part_1(input, n) =
     let first_line :: rest = input in
-    let sum_int_lists = fun(acc, i) ->
-      zip_with(fun(a, b) -> a + b end, i, acc, [])
-    end in
-    let ones_per_position = Stdlib.List.foldl(sum_int_lists, first_line, rest) in
+    let sum_rows_fun = fun(acc, row) -> zip_with(fun(a, b) -> a + b end, row, acc, []) end in
+    let ones_per_position = Stdlib.List.foldl(sum_rows_fun, first_line, rest) in
     let gamma_rating = Stdlib.List.map(fun(x) -> if x > (n - x) then 1 else 0 end, ones_per_position) in
-    let gamma = rating_to_decimal(gamma_rating, 0) in
-    let epsilon_rating = Stdlib.List.map(fun(x) -> if x == 1 then 0 else 1 end, gamma_rating) in
-    let epsilon = rating_to_decimal(epsilon_rating, 0) in
-    print_debug(gamma * epsilon)
+    let epsilon_rating = Stdlib.List.map(flip_bit, gamma_rating) in
+    print_debug(rating_to_decimal(gamma_rating, 0) * rating_to_decimal(epsilon_rating, 0))
 
   val rec get_rating(input, rating_digit_fun, acc) =
     let n = Stdlib.List.length(input) in
@@ -47,15 +44,11 @@ module Main = struct
     | [] :: _ -> Stdlib.List.reverse(acc)
     | _ ->
       let ones_on_position =
-        Stdlib.List.foldl(
-          fun(acc, row) ->
+        Stdlib.List.foldl(fun(acc, row) ->
             let x :: _ = row in
             acc + x
           end,
-          0,
-          input
-        )
-      in
+          0, input) in
       let digit = rating_digit_fun(ones_on_position, n) in
       let new_input =
         Stdlib.List.filter_map(
@@ -63,20 +56,18 @@ module Main = struct
             let x :: rest = row in
             if x == digit then Some(rest) else None
           end,
-          input
-        )
-      in
+          input) in
       get_rating(new_input, rating_digit_fun, digit :: acc)
     end
 
+  val oxygen_rating_fun(x, n) = if x >= (n - x) then 1 else 0
+
+  val co2_scrubber_rating_fun(x, n) = flip_bit(oxygen_rating_fun(x, n))
+
   val part_2(input) =
-    let oxygen_rating_fun = fun(x, n) -> if x >= (n - x) then 1 else 0 end in
     let oxygen_rating = get_rating(input, oxygen_rating_fun, []) in
-    let oxygen = rating_to_decimal(oxygen_rating, 0) in
-    let co2_scrubber_rating_fun = fun(x, n) -> if x >= (n - x) then 0 else 1 end in
     let co2_scrubber_rating = get_rating(input, co2_scrubber_rating_fun, []) in
-    let co2_scrubber = rating_to_decimal(co2_scrubber_rating, 0) in
-    print_debug(oxygen * co2_scrubber)
+    print_debug(rating_to_decimal(oxygen_rating, 0) * rating_to_decimal(co2_scrubber_rating, 0))
 
   val main() =
     let Some(file) = File.open_file("../../3") in
