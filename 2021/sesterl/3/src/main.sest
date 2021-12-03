@@ -1,0 +1,88 @@
+import File
+import Binary
+import Char
+
+module Main = struct
+
+  val rec parse_input(file, acc) =
+    case File.read_line(file) of
+    | Error(_) -> Stdlib.List.reverse(acc)
+    | Ok(line) ->
+        let c_list = Stdlib.Binary.to_list(Binary.trim(line)) in
+        let int_list = Stdlib.List.map(fun(c) -> Char.to_int(c) - 48 end, c_list) in
+        parse_input(file, int_list :: acc)
+    end
+
+  val rec zip_with(zip_fun, left, right, acc) =
+    case {left, right} of
+    | {[], _} -> Stdlib.List.reverse(acc)
+    | {_, []} -> Stdlib.List.reverse(acc)
+    | {l :: lrest, r :: rrest} ->
+      let x = zip_fun(l, r) in
+      zip_with(zip_fun, lrest, rrest, x :: acc)
+    end
+
+  val rec rating_to_decimal(digits_list, acc) =
+    case digits_list of
+    | [] -> acc
+    | x :: rest -> rating_to_decimal(rest, (acc * 2) + x)
+    end
+
+  val part_1(input, n) =
+    let first_line :: rest = input in
+    let sum_int_lists = fun(acc, i) ->
+      zip_with(fun(a, b) -> a + b end, i, acc, [])
+    end in
+    let ones_per_position = Stdlib.List.foldl(sum_int_lists, first_line, rest) in
+    let gamma_rating = Stdlib.List.map(fun(x) -> if x > (n - x) then 1 else 0 end, ones_per_position) in
+    let gamma = rating_to_decimal(gamma_rating, 0) in
+    let epsilon_rating = Stdlib.List.map(fun(x) -> if x == 1 then 0 else 1 end, gamma_rating) in
+    let epsilon = rating_to_decimal(epsilon_rating, 0) in
+    print_debug(gamma * epsilon)
+
+  val rec get_rating(input, rating_digit_fun, acc) =
+    let n = Stdlib.List.length(input) in
+    case input of
+    | last_row :: [] -> Stdlib.List.append(Stdlib.List.reverse(acc), last_row)
+    | [] :: _ -> Stdlib.List.reverse(acc)
+    | _ ->
+      let ones_on_position =
+        Stdlib.List.foldl(
+          fun(acc, row) ->
+            let x :: _ = row in
+            acc + x
+          end,
+          0,
+          input
+        )
+      in
+      let digit = rating_digit_fun(ones_on_position, n) in
+      let new_input =
+        Stdlib.List.filter_map(
+          fun(row) ->
+            let x :: rest = row in
+            if x == digit then Some(rest) else None
+          end,
+          input
+        )
+      in
+      get_rating(new_input, rating_digit_fun, digit :: acc)
+    end
+
+  val part_2(input) =
+    let oxygen_rating_fun = fun(x, n) -> if x >= (n - x) then 1 else 0 end in
+    let oxygen_rating = get_rating(input, oxygen_rating_fun, []) in
+    let oxygen = rating_to_decimal(oxygen_rating, 0) in
+    let co2_scrubber_rating_fun = fun(x, n) -> if x >= (n - x) then 0 else 1 end in
+    let co2_scrubber_rating = get_rating(input, co2_scrubber_rating_fun, []) in
+    let co2_scrubber = rating_to_decimal(co2_scrubber_rating, 0) in
+    print_debug(oxygen * co2_scrubber)
+
+  val main() =
+    let Some(file) = File.open_file("../../3") in
+    let input = parse_input(file, []) in
+    let n = Stdlib.List.length(input) in
+    let _ = part_1(input, n) in
+    part_2(input)
+
+end

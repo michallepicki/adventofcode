@@ -1,0 +1,7 @@
+module Char = struct
+
+  /* Erlang chars chars are just ints so we have a dummy conversion function.
+     In the future when performance is a priority Sesterl may erase those */
+  val to_int : fun(char) -> int = external 1 ```to_int(C) -> C.```
+
+end
