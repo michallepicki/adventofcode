@@ -69,33 +69,49 @@ module Main = struct
     else if Stdlib.List.any(fun(column) -> equal(column, []) end, columns) then true
     else false
 
-  val rec mark_boards(draw, boards, ?acc marked_boards) =
+  type winners =
+    | Winners(option<{int, board}>, option<{int, board}>)
+
+  val rec mark_boards(draw, boards, winners, ?acc marked_boards) =
     let marked_boards = case marked_boards of | None -> [] | Some(marked_boards) -> marked_boards end in
     case boards of
-    | [] -> {None, Stdlib.List.reverse(marked_boards)}
+    | [] -> {winners, Stdlib.List.reverse(marked_boards)}
     | board :: next_boards ->
         let marked_board = mark_board(draw, board) in
-        case is_winner(marked_board) of
-        | true -> {Some({draw, marked_board}), []}
-        | false -> mark_boards(draw, next_boards, ?acc marked_board :: marked_boards)
-        end
+        let is_winner = is_winner(marked_board) in
+        let new_winners =
+          case {is_winner, winners} of
+          | {false, winners} -> winners
+          | {true, Winners(Some(first_winner), _)} -> Winners(Some(first_winner), Some({draw, marked_board}))
+          | {true, Winners(None, None)} -> Winners(Some({draw, marked_board}), Some({draw, marked_board}))
+          end in
+        let new_acc = case is_winner of
+        | true -> marked_boards
+        | false -> marked_board :: marked_boards
+        end in
+        mark_boards(draw, next_boards, new_winners, ?acc new_acc)
     end
 
-  val rec bingo(draws, boards) =
-    /* assuming there's a winner at some point */
-    let draw :: next_draws = draws in
-    case mark_boards(draw, boards) of
-    | {Some(win), _} -> win
-    | {None, new_boards} -> bingo(next_draws, new_boards)
+  val rec bingo(draws, boards, ?acc winners_acc) =
+    let winners_acc = case winners_acc of | None -> Winners(None, None) | Some(acc) -> acc end in
+    case draws of
+      | [] -> winners_acc
+      | draw :: next_draws -> 
+        case mark_boards(draw, boards, winners_acc) of
+        | {new_winners_acc, new_boards} -> bingo(next_draws, new_boards, ?acc new_winners_acc)
+        end
     end
 
   val main() =
     let Some(file) = File.open_file("../../4") in
     let draws = parse_draws(file) in
     let boards = parse_boards(file) in
-    let {draw, winner_board} = bingo(draws, boards) in
-    let Board(rows, _) = winner_board in
-    let score = draw * (Stdlib.List.foldl(fun(acc, x) -> acc + x end, 0, List.unique(List.concat(rows)))) in
-    print_debug(score)
+    let Winners(Some({first_winner_draw, first_winner_board}), Some({last_winner_draw, last_winner_board})) = bingo(draws, boards) in
+    let Board(rows, _) = first_winner_board in
+    let part1_score = first_winner_draw * (Stdlib.List.foldl(fun(acc, x) -> acc + x end, 0, List.unique(List.concat(rows)))) in
+    let Board(rows, _) = last_winner_board in
+    let part2_score = last_winner_draw * (Stdlib.List.foldl(fun(acc, x) -> acc + x end, 0, List.unique(List.concat(rows)))) in
+    let _ = print_debug(part1_score) in
+    print_debug(part2_score)
 
 end
