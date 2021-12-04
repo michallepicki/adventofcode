@@ -1,0 +1,9 @@
+module List = struct
+
+  val concat<$a> : fun(list<list<$a>>) -> list<$a> = external 1 ```
+    concat(L) -> lists:concat(L).```
+
+  val unique<$a> : fun(list<$a>) -> list<$a> = external 1 ```
+    unique(L) -> sets:to_list(sets:from_list(L)).```
+
+end
