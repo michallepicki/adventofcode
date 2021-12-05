@@ -68,8 +68,9 @@ module Main = struct
       let Line(from, to) = if y1 <= y2 then line else swap_ends(line) in
       DirectedLine(Horizontal, from, to)
     else
+      let line = if x1 <= x2 then line else swap_ends(line) in
+      let Line(from, to) = line in
       let direction = get_direction(line) in
-      let Line(from, to) = if x1 <= x2 then line else swap_ends(line) in
       DirectedLine(direction, from, to)
 
   val step(line) =
