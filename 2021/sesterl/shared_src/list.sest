@@ -6,4 +6,7 @@ module List = struct
   val unique<$a> : fun(list<$a>) -> list<$a> = external 1 ```
     unique(L) -> sets:to_list(sets:from_list(L)).```
 
+  val has<$a> : fun($a, list<$a>) -> bool = external 2 ```
+    has(E, L) -> lists:member(E, L).```
+
 end

@@ -1,0 +1,87 @@
+import File
+import Binary
+import List
+
+module Main = struct
+
+  type point =
+    | Point(int, int)
+
+  type line =
+    | Line(point, point)
+
+  val rec parse_lines(file, ?acc acc) =
+    let acc = case acc of | None -> [] | Some(acc) -> acc end in
+    case File.read_line(file) of
+    | Error(_) -> Stdlib.List.reverse(acc)
+    | Ok(line) ->
+      let [from, to] = Binary.split(Binary.trim(line), " -> ") in
+      let [from_x, from_y] = Binary.split(from, ",") in
+      let [to_x, to_y] = Binary.split(to, ",") in
+      let line =
+        Line(
+          Point(Binary.to_int(from_x), Binary.to_int(from_y)),
+          Point(Binary.to_int(to_x), Binary.to_int(to_y))
+        ) in
+      parse_lines(file, ?acc line :: acc)
+    end
+
+  val is_horizontal(Line(Point(x1, y1), Point(x2, y2))) =
+    if x1 == x2 then true else false
+
+  val is_vertical(Line(Point(x1, y1), Point(x2, y2))) =
+    if y1 == y2 then true else false
+
+  val is_horizontal_or_vertical(line) =
+    if is_horizontal(line) then true else
+    if is_vertical(line) then true else false
+
+  val normalize(line) =
+    let Line(Point(x1, y1), Point(x2, y2)) = line in
+    if is_horizontal(line) then
+      if y1 <= y2 then line else Line(Point(x2, y2), Point(x1, y1))
+    else
+      if x1 <= x2 then line else Line(Point(x2, y2), Point(x1, y1))
+
+  /* term comparison operators requested in https://github.com/gfngfn/Sesterl/issues/60 */
+  val equal<$a> : fun($a, $a) -> bool = external 2 ```
+    equal(A, B) -> A == B.
+  ```
+
+  val step(line) =
+    let Line(from, to) = line in
+    let Point(x, y) = from in
+    if is_horizontal(line) then
+      Line(Point(x, y + 1), to)
+    else
+      Line(Point(x + 1, y), to)
+
+  val rec to_points(line, ?acc acc) =
+    let acc = case acc of | None -> [] | Some(acc) -> acc end in
+    let Line(from, to) = line in
+    if equal(from, to) then
+      from :: acc
+    else
+      to_points(step(line), ?acc from :: acc)
+
+  val rec duplicates(list, ?acc acc) =
+    let acc = case acc of | None -> [] | Some(acc) -> acc end in
+    case list of
+    | [] -> List.unique(acc)
+    | el :: rest ->
+      let acc = if List.has(el, rest) then el :: acc else acc in
+      duplicates(rest, ?acc acc)
+    end
+
+  val main() =
+    let Some(file) = File.open_file("../../5") in
+    let lines = parse_lines(file) in
+    let p1_lines =
+      let filtered = Stdlib.List.filter(is_horizontal_or_vertical, lines) in
+      Stdlib.List.map(normalize, filtered) in
+    let lines_as_points = Stdlib.List.map(fun(line) -> to_points(line) end, p1_lines) in
+    let all_points = List.concat(lines_as_points) in
+    let duplicates = duplicates(all_points) in
+    print_debug(Stdlib.List.length(duplicates))
+
+end
