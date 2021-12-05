@@ -79,7 +79,8 @@ module Main = struct
     case list of
     | [] -> acc
     | el :: rest ->
-      let acc = if Set.has(el, uniques) then
+      let acc =
+        if Set.has(el, uniques) then
           if Set.has(el, duplicates) then
             acc
           else
@@ -91,15 +92,24 @@ module Main = struct
   val main() =
     let Some(file) = File.open_file("../../5") in
     let lines = parse_lines(file) in
-    let normalized = Stdlib.List.map(normalize, lines) in
-    let p1_lines = Stdlib.List.filter(is_horizontal_or_vertical, normalized) in
-    let p1_lines_as_points = Stdlib.List.map(fun(line) -> to_points(line) end, p1_lines) in
-    let p1_all_points = List.concat(p1_lines_as_points) in
-    let {_, _, p1_duplicates} = count_duplicates(p1_all_points) in
+    let normalized =
+      Stdlib.List.map(normalize, lines) in
+    let p1_lines =
+      Stdlib.List.filter(is_horizontal_or_vertical, normalized) in
+    let p1_lines_as_points =
+    /* need the fun wrapper for to_points because of optional argument */
+      Stdlib.List.map(fun(line) -> to_points(line) end, p1_lines) in
+    let p1_all_points =
+      List.concat(p1_lines_as_points) in
+    let {_, _, p1_duplicates} =
+      count_duplicates(p1_all_points) in
     let _ = print_debug(p1_duplicates) in
-    let p2_lines_as_points = Stdlib.List.map(fun(line) -> to_points(line) end, normalized) in
-    let p2_all_points = List.concat(p2_lines_as_points) in
-    let {_, _, p2_duplicates} = count_duplicates(p2_all_points) in
+    let p2_lines_as_points =
+      Stdlib.List.map(fun(line) -> to_points(line) end, normalized) in
+    let p2_all_points =
+      List.concat(p2_lines_as_points) in
+    let {_, _, p2_duplicates} =
+      count_duplicates(p2_all_points) in
     print_debug(p2_duplicates)
 
 
