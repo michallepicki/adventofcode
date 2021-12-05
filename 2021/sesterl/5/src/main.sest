@@ -36,25 +36,36 @@ module Main = struct
     if is_horizontal(line) then true else
     if is_vertical(line) then true else false
 
+  val swap_ends(Line(from, to)) = Line(to, from)
+
   val normalize(line) =
     let Line(Point(x1, y1), Point(x2, y2)) = line in
     if is_horizontal(line) then
-      if y1 <= y2 then line else Line(Point(x2, y2), Point(x1, y1))
+      if y1 <= y2 then line else swap_ends(line)
     else
-      if x1 <= x2 then line else Line(Point(x2, y2), Point(x1, y1))
+      if x1 <= x2 then line else swap_ends(line)
 
-  /* term comparison operators requested in https://github.com/gfngfn/Sesterl/issues/60 */
-  val equal<$a> : fun($a, $a) -> bool = external 2 ```
-    equal(A, B) -> A == B.
-  ```
+  val is_diagonal_downwards(Line(Point(x1, y1), Point(x2, y2))) =
+    let known = if x1 < x2 then if y1 < y2 then true else false else false in
+    if known then true else
+    if x2 < x1 then if y2 < y1 then true else false else false
 
   val step(line) =
     let Line(from, to) = line in
     let Point(x, y) = from in
     if is_horizontal(line) then
       Line(Point(x, y + 1), to)
-    else
+    else if is_vertical(line) then
       Line(Point(x + 1, y), to)
+    else if is_diagonal_downwards(line) then
+      Line(Point(x + 1, y + 1), to)
+    else
+      Line(Point(x + 1, y - 1), to)
+
+  /* term comparison operators requested in https://github.com/gfngfn/Sesterl/issues/60 */
+  val equal<$a> : fun($a, $a) -> bool = external 2 ```
+    equal(A, B) -> A == B.
+  ```
 
   val rec to_points(line, ?acc acc) =
     let acc = case acc of | None -> [] | Some(acc) -> acc end in
@@ -76,12 +87,16 @@ module Main = struct
   val main() =
     let Some(file) = File.open_file("../../5") in
     let lines = parse_lines(file) in
-    let p1_lines =
-      let filtered = Stdlib.List.filter(is_horizontal_or_vertical, lines) in
-      Stdlib.List.map(normalize, filtered) in
-    let lines_as_points = Stdlib.List.map(fun(line) -> to_points(line) end, p1_lines) in
-    let all_points = List.concat(lines_as_points) in
-    let duplicates = duplicates(all_points) in
-    print_debug(Stdlib.List.length(duplicates))
+    let normalized = Stdlib.List.map(normalize, lines) in
+    let p1_lines = Stdlib.List.filter(is_horizontal_or_vertical, normalized) in
+    let p1_lines_as_points = Stdlib.List.map(fun(line) -> to_points(line) end, p1_lines) in
+    let p1_all_points = List.concat(p1_lines_as_points) in
+    let p1_duplicates = duplicates(p1_all_points) in
+    let _ = print_debug(Stdlib.List.length(p1_duplicates)) in
+    let p2_lines_as_points = Stdlib.List.map(fun(line) -> to_points(line) end, normalized) in
+    let p2_all_points = List.concat(p2_lines_as_points) in
+    let p2_duplicates = duplicates(p2_all_points) in
+    print_debug(Stdlib.List.length(p2_duplicates))
+
 
 end
