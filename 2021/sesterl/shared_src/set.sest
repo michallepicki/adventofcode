@@ -1,0 +1,18 @@
+module Set = struct
+
+  type t<$a> =
+    | Dummy
+
+  val new<$a> : fun() -> t<$a> = external 0 ```
+    new() -> sets:new([{version, 2}]).```
+
+  val from_list<$a> : fun(list<$a>) -> t<$a> = external 1 ```
+    from_list(L) -> sets:from_list(L, [{version, 2}]).```
+
+  val has<$a> : fun($a, t<$a>) -> bool = external 2 ```
+    has(E, S) -> sets:is_element(E, S).```
+
+  val add<$a> : fun($a, t<$a>) -> t<$a> = external 2 ```
+    add(E, S) -> sets:add_element(E, S).```
+
+end
