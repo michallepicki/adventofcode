@@ -73,9 +73,7 @@ module Main = struct
       let direction = get_direction(line) in
       DirectedLine(direction, from, to)
 
-  val step(line) =
-    let DirectedLine(direction, from, to) = line in
-    let Point(x, y) = from in
+  val step(DirectedLine(direction, Point(x, y), to)) =
     case direction of
     | Horizontal ->
         DirectedLine(direction, Point(x, y + 1), to)
