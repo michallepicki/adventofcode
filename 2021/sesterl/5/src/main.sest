@@ -64,15 +64,13 @@ module Main = struct
     let Line(from, to) = line in
     let Point(x1, y1) = from in
     let Point(x2, y2) = to in
-    let direction = get_direction(line) in
-    case direction of
-    | Horizontal ->
-        let Line(from, to) = if y1 <= y2 then line else swap_ends(line) in
-        DirectedLine(direction, from, to)
-    | _ ->
-        let Line(from, to) = if x1 <= x2 then line else swap_ends(line) in
-        DirectedLine(direction, from, to)
-    end
+    if is_horizontal(line) then
+      let Line(from, to) = if y1 <= y2 then line else swap_ends(line) in
+      DirectedLine(Horizontal, from, to)
+    else
+      let direction = get_direction(line) in
+      let Line(from, to) = if x1 <= x2 then line else swap_ends(line) in
+      DirectedLine(direction, from, to)
 
   val step(line) =
     let DirectedLine(direction, from, to) = line in
