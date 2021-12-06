@@ -22,9 +22,8 @@ module Main = struct
     | 0 -> counters
     | _ ->
       let counters =
-        let l = Stdlib.RawMap.to_list(counters) in
         let decrease_timer = fun({k, v}) -> {k - 1, v} end in
-        Stdlib.RawMap.from_list(Stdlib.List.map(decrease_timer, l)) in
+        Stdlib.RawMap.from_list(Stdlib.List.map(decrease_timer, Stdlib.RawMap.to_list(counters))) in
       let n =
         /* need to update the parser to support negative integers here */
         case Stdlib.RawMap.find(0-1, counters) of | Some(x) -> x | None -> 0 end in
