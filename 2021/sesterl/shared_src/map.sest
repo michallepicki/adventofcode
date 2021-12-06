@@ -1,0 +1,8 @@
+module Map = struct
+
+  val update_with<$k, $v> : fun($k, fun($v) -> $v, $v, Stdlib.RawMap.t<$k, $v>) -> Stdlib.RawMap.t<$k, $v> = external 4 ```
+    update_with(Key, Fun, Init, Map) ->
+        maps:update_with(Key, Fun, Init, Map).
+  ```
+
+end

@@ -1,0 +1,50 @@
+import File
+import Binary
+import List
+import Map
+
+module Main = struct
+
+  val parse_input(file) =
+    let Ok(line) = File.read_line(file) in
+    Stdlib.List.map(Binary.to_int, Binary.split(Binary.trim(line), ",", ?where Binary.SplitAll))
+
+  val count_fish_per_timer(fish_timers) =
+    let counters = Stdlib.RawMap.new() in
+    let bump_counter =
+      fun(counters, fish_timer) ->
+        Map.update_with(fish_timer, fun(x) -> x + 1 end, 1, counters)
+      end in
+    Stdlib.List.foldl(bump_counter, counters, fish_timers)
+
+  val rec simulate(counters, days) =
+    case days of
+    | 0 -> counters
+    | _ ->
+      let counters =
+        let l = Stdlib.RawMap.to_list(counters) in
+        let decrease_timer = fun({k, v}) -> {k - 1, v} end in
+        Stdlib.RawMap.from_list(Stdlib.List.map(decrease_timer, l)) in
+      let n =
+        /* need to update the parser to support negative integers here */
+        case Stdlib.RawMap.find(0-1, counters) of | Some(x) -> x | None -> 0 end in
+      let counters = Stdlib.RawMap.remove(0-1, counters) in
+      let counters = Stdlib.RawMap.put(8, n, counters) in
+      let counters = Map.update_with(6, fun(x) -> x + n end, n, counters) in
+      simulate(counters, days - 1)
+    end
+
+  val main() =
+    let Some(file) = File.open_file("../../6") in
+    let input = parse_input(file) in
+    let initial_counters = count_fish_per_timer(input) in
+    let counters_p1 = simulate(initial_counters, 80) in
+    let add_up_fish =
+      fun(c) -> Stdlib.List.foldl(fun(acc, {_, n}) -> acc + n end, 0, Stdlib.RawMap.to_list(c)) end in
+    let part1 = add_up_fish(counters_p1) in
+    let _ = print_debug(part1) in
+    let counters_p2 = simulate(initial_counters, 256) in
+    let part2 = add_up_fish(counters_p2) in
+    print_debug(part2)
+
+end
