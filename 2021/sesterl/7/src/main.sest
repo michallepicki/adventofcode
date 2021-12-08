@@ -22,11 +22,10 @@ module Main = struct
       let acc = Array.set(i, cost_left + cost_right, acc) in
       compute_fuel_costs1(input_array, prefix_sums, total_sum, n, i + 1, acc)
 
-  val rec compute_fuel_costs2(input_array, max, i, acc) =
-    if i > max then
+  val rec compute_fuel_costs2(input_array, max, position, acc) =
+    if position > max then
       acc
     else
-      let position = i in
       let fuel_cost =
         Array.foldl(fun(i, v, acc) ->
           let diff = position - Array.get(i, input_array) in
@@ -35,7 +34,7 @@ module Main = struct
           acc + cost
         end, 0, input_array) in
       let acc = case acc of | None -> Some(fuel_cost) | Some(acc_v) -> if fuel_cost < acc_v then Some(fuel_cost) else acc end in
-      compute_fuel_costs2(input_array, max, i + 1, acc)
+      compute_fuel_costs2(input_array, max, position + 1, acc)
 
   val main() =
     let Some(file) = File.open_file("../../7") in
