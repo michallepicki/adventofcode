@@ -1,0 +1,8 @@
+{application, the_treachery_of_whales,
+ [{description, "An Advent of Code exercise solution"},
+  {vsn, "0.1.0"},
+  {applications,
+   [kernel,
+    stdlib
+   ]}
+ ]}.

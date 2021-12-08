@@ -1,0 +1,65 @@
+import File
+import Binary
+import List
+import Map
+import Array
+
+module Main = struct
+
+  val parse_input(file) =
+    let Ok(line) = File.read_line(file) in
+    Stdlib.List.map(Binary.to_int, Binary.split(Binary.trim(line), ",", ?where Binary.SplitAll))
+
+  val rec compute_fuel_costs1(input_array, prefix_sums, total_sum, n, i, acc) =
+    if i == n then
+      acc
+    else
+      let position = Array.get(i, input_array) in
+      let sum_left = if i == 0 then 0 else Array.get(i - 1, prefix_sums) in
+      let cost_left = (position * i) - sum_left in
+      let sum_right = if i == n - 1 then 0 else total_sum - Array.get(i, prefix_sums) in
+      let cost_right = sum_right - (position * ((n - i) - 1)) in
+      let acc = Array.set(i, cost_left + cost_right, acc) in
+      compute_fuel_costs1(input_array, prefix_sums, total_sum, n, i + 1, acc)
+
+  val rec compute_fuel_costs2(input_array, max, i, acc) =
+    if i > max then
+      acc
+    else
+      let position = i in
+      let fuel_cost =
+        Array.foldl(fun(i, v, acc) ->
+          let diff = position - Array.get(i, input_array) in
+          let distance = if diff < 0 then 0 - diff else diff in
+          let cost = (distance * (distance + 1)) / 2 in
+          acc + cost
+        end, 0, input_array) in
+      let acc = case acc of | None -> Some(fuel_cost) | Some(acc_v) -> if fuel_cost < acc_v then Some(fuel_cost) else acc end in
+      compute_fuel_costs2(input_array, max, i + 1, acc)
+
+  val main() =
+    let Some(file) = File.open_file("../../7") in
+    let input = parse_input(file) in
+    let n = Stdlib.List.length(input) in
+    let input = List.sort(fun(a, b) -> a <= b end, input) in
+    let input_array = Array.from_list(input) in
+    let prefix_sums =
+      let a = Array.new(n, 0) in
+      let update =
+        fun(i, v, {prev, sums}) ->
+          {prev + v, Array.set(i, prev + v, sums)}
+        end in
+      let {_, a} = Array.foldl(update, {0, a}, input_array) in
+      a in
+    let fuel_costs =
+      compute_fuel_costs1(input_array, prefix_sums, Array.get(n - 1, prefix_sums), n, 0, Array.new(n, 0)) in
+    let find_min =
+      fun(a) ->
+        Array.foldl(fun(i, v, acc) -> case acc of | None -> Some(v) | Some(acc_v) -> if v < acc_v then Some(v) else acc end end, None, a)
+      end in
+    let Some(part1) = find_min(fuel_costs) in
+    let _ = print_debug(part1) in
+    let Some(part2) =
+      compute_fuel_costs2(input_array, Array.get(n - 1, input_array), 0, None) in
+    print_debug(part2)
+end

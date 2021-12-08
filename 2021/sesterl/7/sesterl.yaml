@@ -1,0 +1,19 @@
+package: "the_treachery_of_whales"
+main_module: "Main"
+source_directories:
+  - "src"
+  - "../shared_src"
+
+dependencies:
+  - name: "sesterl_stdlib"
+    source:
+      type: "git"
+      repository: "https://github.com/gfngfn/sesterl_stdlib"
+      spec:
+        type: "tag"
+        value: "v0.4.1"
+
+document_outputs:
+  - format:
+      type: "html"
+    output_directory: "./_doc"

@@ -1,0 +1,27 @@
+module Array = struct
+
+  type t<$a> =
+    | Dummy
+
+  val new<$a> : fun(int, $a) -> t<$a> = external 2 ```
+    new(S, D) -> array:new([{size, S}, {default, D}, {fixed, true}]).```
+
+  val from_list<$a> : fun(list<$a>) -> t<$a> = external 1 ```
+    from_list(L) -> array:fix(array:from_list(L)).```
+
+  val to_list<$a> : fun(t<$a>) -> list<$a> = external 1 ```
+    to_list(A) -> array:to_list(A).```
+
+  val get<$a> : fun(int, t<$a>) -> $a = external 2 ```
+    get(I, A) -> array:get(I, A).```
+
+  val set<$a> : fun(int, $a, t<$a>) -> t<$a> = external 3 ```
+    set(I, V, A) -> array:set(I, V, A).```
+
+  val map<$a, $b> : fun(fun(int, $a) -> $b, t<$a>) -> t<$b> = external 2 ```
+    map(F, A) -> array:map(F, A).```
+
+  val foldl<$a, $b> : fun(fun(int, $a, $b) -> $b, $b, t<$a>) -> $b = external 3 ```
+    foldl(F, I, A) -> array:foldl(F, I, A).```
+
+end

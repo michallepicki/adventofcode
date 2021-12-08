@@ -9,4 +9,7 @@ module List = struct
   val has<$a> : fun($a, list<$a>) -> bool = external 2 ```
     has(E, L) -> lists:member(E, L).```
 
+  val sort<$a> : fun(fun($a, $a) -> bool, list<$a>) -> list<$a> = external 2 ```
+    sort(F, L) -> lists:sort(F, L).```
+
 end
