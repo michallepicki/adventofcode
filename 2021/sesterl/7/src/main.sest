@@ -28,7 +28,7 @@ module Main = struct
     else
       let fuel_cost =
         Array.foldl(fun(i, v, acc) ->
-          let diff = position - Array.get(i, input_array) in
+          let diff = position - v in
           let distance = if diff < 0 then 0 - diff else diff in
           let cost = (distance * (distance + 1)) / 2 in
           acc + cost
