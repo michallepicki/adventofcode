@@ -1,0 +1,85 @@
+import File
+import Binary
+import List
+import Map
+import Array
+
+module Main = struct
+
+  val rec parse_input(file, ?acc acc) =
+    let acc = case acc of | None -> [] | Some(acc) -> acc end in
+    case File.read_line(file) of
+    | Error(_) -> Stdlib.List.reverse(acc)
+    | Ok(line) ->
+      let [patterns, output] = Binary.split(Binary.trim(line), " | ") in
+      let to_sorted_charlist =
+        fun(binary) ->
+          List.sort(fun(a, b) -> a <= b end, Stdlib.Binary.to_list(binary))
+        end in
+      let patterns = Binary.split(patterns, " ", ?where Binary.SplitAll) in
+      let patterns = Stdlib.List.map(to_sorted_charlist, patterns) in
+      let output = Binary.split(output, " ", ?where Binary.SplitAll) in
+      let output = Stdlib.List.map(to_sorted_charlist, output) in
+      parse_input(file, ?acc {patterns, output} :: acc)
+    end
+
+  val is_unique_length(digit) =
+    let length = Stdlib.List.length(digit) in
+    List.has(length, [2, 3, 4, 7])
+
+  val count_unique_length_digits(input) =
+    let outputs = Stdlib.List.map(fun({patterns, output}) -> output end, input) in
+    let digits = List.concat(outputs) in
+    Stdlib.List.length(Stdlib.List.filter(is_unique_length, digits))
+
+  val rec little_deduction(input, acc) =
+    case input of
+    | [] -> acc
+    | {patterns, [o1, o2, o3, o4]} :: rest ->
+        let filter_by_length = fun(length, list) -> Stdlib.List.filter(fun(i) -> Stdlib.List.length(i) == length end, list) end in
+        let filter_out = fun(elems, list) -> Stdlib.List.filter(fun(i) -> if List.has(i, elems) then false else true end, list) end in
+        let find_covering = fun(digit, list) -> Stdlib.List.filter(fun(i) -> Stdlib.List.all(fun(c) -> List.has(c, i) end, digit) end, list) end in
+        let find_covered = fun(digit, list) -> Stdlib.List.filter(fun(i) -> Stdlib.List.all(fun(c) -> List.has(c, digit) end, i) end, list) end in
+        let [one] = filter_by_length(2, patterns) in
+        let [seven] = filter_by_length(3, patterns) in
+        let [four] = filter_by_length(4, patterns) in
+        let [eight] = filter_by_length(7, patterns) in
+        let next = filter_out([one, seven, four, eight], patterns) in
+        let [nine] = find_covering(four, next) in
+        let next = filter_out([nine], next) in
+        let five_or_three = find_covered(nine, next) in
+        let [three] = find_covering(one, five_or_three) in
+        let [five] = filter_out([three], five_or_three) in
+        let next = filter_out([nine, five, three], next) in
+        let [six] = find_covering(five, next) in
+        let next = filter_out([six], next) in
+        let [zero] = find_covering(one, next) in
+        let [two] = filter_out([zero], next) in
+        let mappings =
+          let m = Stdlib.RawMap.new() in
+          let m = Stdlib.RawMap.put(zero, 0, m) in
+          let m = Stdlib.RawMap.put(one, 1, m) in
+          let m = Stdlib.RawMap.put(two, 2, m) in
+          let m = Stdlib.RawMap.put(three, 3, m) in
+          let m = Stdlib.RawMap.put(four, 4, m) in
+          let m = Stdlib.RawMap.put(five, 5, m) in
+          let m = Stdlib.RawMap.put(six, 6, m) in
+          let m = Stdlib.RawMap.put(seven, 7, m) in
+          let m = Stdlib.RawMap.put(eight, 8, m) in
+          let m = Stdlib.RawMap.put(nine, 9, m) in
+          m in
+        let Some(o1) = Stdlib.RawMap.find(o1, mappings) in
+        let Some(o2) = Stdlib.RawMap.find(o2, mappings) in
+        let Some(o3) = Stdlib.RawMap.find(o3, mappings) in
+        let Some(o4) = Stdlib.RawMap.find(o4, mappings) in
+        little_deduction(rest, acc + (1000 * o1) + (100 * o2) + (10 * o3) + o4)
+    end
+
+  val main() =
+    let Some(file) = File.open_file("../../8") in
+    let input = parse_input(file) in
+    let part1 = count_unique_length_digits(input) in
+    let _ = print_debug(part1) in
+    let part2 = little_deduction(input, 0) in
+    print_debug(part2)
+end
