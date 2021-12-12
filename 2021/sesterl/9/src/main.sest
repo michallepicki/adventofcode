@@ -16,7 +16,7 @@ module Main = struct
     let heightmap = Stdlib.RawMap.new() in
     let process_line = fun({i, heightmap}, line) ->
         let process_point = fun({j, heightmap}, c) ->
-          {j + 1, Stdlib.RawMap.put({i, j}, Char.to_int(c) - 48, heightmap)}
+          {j + 1, Stdlib.RawMap.put({j, i}, Char.to_int(c) - 48, heightmap)}
         end in
         let {_, heightmap} = Stdlib.List.foldl(process_point, {0, heightmap}, line) in
         {i + 1, heightmap}
@@ -28,19 +28,19 @@ module Main = struct
     if i >= max then acc
     else n_times(f, i + 1, max, f(acc, i))
 
+  val neighbours({x, y}) = [{x - 1, y}, {x + 1, y}, {x, y - 1}, {x, y + 1}]
+
+  val in_range({x, y}, yn, xn) =
+    case {x>=0, x<xn, y>=0, y<yn} of
+    | {true, true, true, true} -> true
+    | _ -> false
+    end
+
   val find_low_points(heightmap, yn, xn) =
     n_times(fun(acc, y) ->
       n_times(fun(acc, x) ->
         let Some(v) = Stdlib.RawMap.find({x, y}, heightmap) in
-        let points_to_check = [{x - 1, y}, {x + 1, y}, {x, y - 1}, {x, y + 1}] in
-        let in_range =
-          fun({x, y}) ->
-            case {x>=0, x<xn, y>=0, y<yn} of
-            | {true, true, true, true} -> true
-            | _ -> false
-            end
-          end in
-        let points_to_check = Stdlib.List.filter(in_range, points_to_check) in
+        let points_to_check = Stdlib.List.filter(fun(p) -> in_range(p, yn, xn) end, neighbours({x, y})) in
         let is_low_point = Stdlib.List.all(fun({x, y}) ->
             let Some(ov) = Stdlib.RawMap.find({x, y}, heightmap) in
             ov > v
@@ -49,11 +49,28 @@ module Main = struct
       end, 0, xn, acc)
     end, 0, yn, [])
 
+  val rec get_basin_size(queue, heightmap, yn, xn, size, checked) =
+    case queue of
+    | [] -> size
+    | p :: rest ->
+        let Some(v) = Stdlib.RawMap.find(p, heightmap) in
+        let neighbours = Stdlib.List.filter(fun(p) -> in_range(p, yn, xn) end, neighbours(p)) in
+        let neighbours = Stdlib.List.filter(fun(p) -> if List.has(p, checked) then false else true end, neighbours) in
+        let candidates = Stdlib.List.filter(fun(p) -> if List.has(p, rest) then false else true end, neighbours) in
+        let new_basin_points = Stdlib.List.filter(fun(p) ->
+            let Some(ov) = Stdlib.RawMap.find(p, heightmap) in
+            if ov < 9 then ov >= v else false
+          end, candidates) in
+        get_basin_size(List.concat([rest, new_basin_points]), heightmap, yn, xn, size + 1, p :: checked)
+    end
+
   val main() =
     let Some(input) = File.read_file("../../9") in
     let {yn, xn, heightmap} = parse_input(input) in
     let low_points = find_low_points(heightmap, yn, xn) in
     let part1 = Stdlib.List.foldl(fun(acc, {_, _, v}) -> acc + v + 1 end, 0, low_points) in
-    print_debug(part1)
-
+    let _ = print_debug(part1) in
+    let basin_sizes = Stdlib.List.map(fun({x, y, v}) -> get_basin_size([{x, y}], heightmap, yn, xn, 0, []) end, low_points) in
+    let a :: b :: c :: _ = List.sort(fun(a, b) -> a >= b end, basin_sizes) in
+    print_debug(a * b * c)
 end
