@@ -1,0 +1,59 @@
+import File
+import Binary
+import List
+import Map
+import Array
+import Char
+
+module Main = struct
+
+  val parse_input(input) =
+    let lines = Binary.split(Binary.trim(input), "\n", ?where Binary.SplitAll) in
+    let lines = Stdlib.List.map(Stdlib.Binary.to_list, lines) in
+    let example_line :: rest = lines in
+    let yn = Stdlib.List.length(lines) in
+    let xn = Stdlib.List.length(example_line) in
+    let heightmap = Stdlib.RawMap.new() in
+    let process_line = fun({i, heightmap}, line) ->
+        let process_point = fun({j, heightmap}, c) ->
+          {j + 1, Stdlib.RawMap.put({i, j}, Char.to_int(c) - 48, heightmap)}
+        end in
+        let {_, heightmap} = Stdlib.List.foldl(process_point, {0, heightmap}, line) in
+        {i + 1, heightmap}
+      end in
+    let {_, heightmap} = Stdlib.List.foldl(process_line, {0, heightmap}, lines) in
+    {yn, xn, heightmap}
+
+  val rec n_times(f, i, max, acc) =
+    if i >= max then acc
+    else n_times(f, i + 1, max, f(acc, i))
+
+  val find_low_points(heightmap, yn, xn) =
+    n_times(fun(acc, y) ->
+      n_times(fun(acc, x) ->
+        let Some(v) = Stdlib.RawMap.find({x, y}, heightmap) in
+        let points_to_check = [{x - 1, y}, {x + 1, y}, {x, y - 1}, {x, y + 1}] in
+        let in_range =
+          fun({x, y}) ->
+            case {x>=0, x<xn, y>=0, y<yn} of
+            | {true, true, true, true} -> true
+            | _ -> false
+            end
+          end in
+        let points_to_check = Stdlib.List.filter(in_range, points_to_check) in
+        let is_low_point = Stdlib.List.all(fun({x, y}) ->
+            let Some(ov) = Stdlib.RawMap.find({x, y}, heightmap) in
+            ov > v
+          end, points_to_check) in
+        if is_low_point then {x, y, v} :: acc else acc
+      end, 0, xn, acc)
+    end, 0, yn, [])
+
+  val main() =
+    let Some(input) = File.read_file("../../9") in
+    let {yn, xn, heightmap} = parse_input(input) in
+    let low_points = find_low_points(heightmap, yn, xn) in
+    let part1 = Stdlib.List.foldl(fun(acc, {_, _, v}) -> acc + v + 1 end, 0, low_points) in
+    print_debug(part1)
+
+end

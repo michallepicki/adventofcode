@@ -1,5 +1,13 @@
 module File = struct
 
+  val read_file : fun(binary) -> option<binary> = external 1 ```
+    read_file(Path) ->
+      case file:read_file(Path) of
+        {ok, Binary} -> {ok, Binary};
+        _ -> error
+      end.
+  ```
+
   type descriptor =
     | FileDescriptorDummy
 
