@@ -1,0 +1,91 @@
+import File
+import Binary
+import List
+import Map
+import Array
+import Char
+
+module Main = struct
+
+  val read_and_parse_input() =
+    let Some(input) = File.read_file("../../10") in
+    let lines = Binary.split(Binary.trim(input), "\n", ?where Binary.SplitAll) in
+    let lines = Stdlib.List.map(Stdlib.Binary.to_list, lines) in
+    lines
+
+  val is_opening(b) = List.has(b, [$'{', $'(', $'<', $'['])
+
+  val matching(b) =
+    case b of
+    | $')' -> $'('
+    | $']' -> $'['
+    | $'}' -> $'{'
+    | $'>' -> $'<'
+    | $'(' -> $')'
+    | $'[' -> $']'
+    | $'{' -> $'}'
+    | $'<' -> $'>'
+    end
+
+  val character_score(c) =
+    case c of
+    | $')' -> 3
+    | $']' -> 57
+    | $'}' -> 1197
+    | $'>' -> 25137
+    end
+
+  val equal<$a> : fun($a, $a) -> bool = external 2 ```
+    equal(A, B) -> A == B.
+  ```
+
+  val rec score(line, acc) =
+    case line of
+    | [] -> 0
+    | b :: rest ->
+        if is_opening(b) then score(rest, b :: acc)
+        else
+          case acc of
+          | [] -> 0
+          | c :: acc -> if equal(matching(b), c) then score(rest, acc) else character_score(b)
+          end
+    end
+
+  val rec autocomplete(line, acc) =
+    case line of
+    | [] -> Stdlib.List.map(matching, acc)
+    | b :: rest ->
+        if is_opening(b) then autocomplete(rest, b :: acc)
+        else
+          case acc of
+          | [] -> []
+          | c :: acc -> autocomplete(rest, acc)
+          end
+    end
+  
+  val rec p2_score(completion, acc) =
+    case completion of
+    | [] -> acc
+    | c :: rest ->
+        let s =
+          case c of
+          | $')' -> 1
+          | $']' -> 2
+          | $'}' -> 3
+          | $'>' -> 4
+          end in
+        p2_score(rest, (acc * 5) + s)
+    end
+
+  val rec nth(i, v :: rest) = if i == 0 then v else nth(i - 1, rest)
+
+  val main() =
+    let input = read_and_parse_input() in
+    let part1 = Stdlib.List.foldl(fun(a, line) -> score(line, []) + a end, 0, input) in
+    let _ = print_debug(part1) in
+    let incomplete_lines = Stdlib.List.filter(fun(line) -> equal(score(line, []), 0) end, input) in
+    let p2_scores = List.sort(fun(a, b) -> a <= b end, Stdlib.List.map(fun(line) -> p2_score(autocomplete(line, []), 0) end, incomplete_lines)) in
+    let n = Stdlib.List.length(p2_scores) in
+    let middle = nth((n / 2), p2_scores) in
+    print_debug(middle)
+end
