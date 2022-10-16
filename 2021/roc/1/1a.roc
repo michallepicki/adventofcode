@@ -13,16 +13,18 @@ main = Program.quick mainTask
 
 mainTask =
     fileContents <- Task.await (File.readUtf8 (Path.fromStr "../1"))
-    lines = Str.split (Str.trim fileContents) "\n"
-    result =
-        List.walkTry lines { count: 0, previous: None } countMeasurementIncreases
+    lines =
+        fileContents
+        |> Str.trim
+        |> Str.split "\n"
+        |> List.keepOks Str.toI16
 
-    when result is
-        Ok { count } -> Stdout.line (Num.toStr count)
-        _ -> Stdout.line "Uh-oh!"
+    { count } =
+        List.walk lines { count: 0, previous: None } countMeasurementIncreases
 
-countMeasurementIncreases = \{ count, previous }, measurementStr ->
-    measurement <- Result.map (Str.toI16 measurementStr)
+    Stdout.line (Num.toStr count)
+
+countMeasurementIncreases = \{ count, previous }, measurement ->
     newCount =
         when previous is
             None -> count
