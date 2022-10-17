@@ -1,5 +1,5 @@
 app "2b.exe"
-    packages { cli: "../../../../roc/examples/interactive/cli-platform/main.roc" }
+    packages { cli: "/var/home/michal/rocking/.local/bin/examples/cli/cli-platform/main.roc" }
     imports [
         cli.File,
         cli.Path,
