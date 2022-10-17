@@ -20,15 +20,14 @@ mainTask =
         |> List.keepOks Str.toI16
 
     { count } =
-        List.walk measurements { count: 0, previous: { one: None, two: None, three: None } } countMeasurementIncreases
+        List.walk measurements { count: 0, previous: { previous1: None, previous2: None, previous3: None } } countMeasurementIncreases
 
     Stdout.line (Num.toStr count)
 
 countMeasurementIncreases = \{ count, previous }, measurement ->
-    { two, three } = previous
     newCount =
         when previous is
-            { one: Some previous1, two: Some previous2, three: Some previous3 } ->
+            { previous1: Some previous1, previous2: Some previous2, previous3: Some previous3 } ->
                 if previous2 + previous3 + measurement > previous1 + previous2 + previous3 then
                     count + 1
                 else
@@ -36,4 +35,6 @@ countMeasurementIncreases = \{ count, previous }, measurement ->
 
             _ -> count
 
-    { count: newCount, previous: { one: two, two: three, three: Some measurement } }
+    { previous2: previous2Other, previous3: previous3Other } = previous
+
+    { count: newCount, previous: { previous1: previous2Other, previous2: previous3Other, previous3: Some measurement } }
