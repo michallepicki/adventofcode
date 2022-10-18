@@ -43,29 +43,26 @@ getRating = \input, ratingDigitFun, acc, i ->
         when List.first input is
             Err _ -> acc
             Ok lastRow ->
-                result =
-                    List.walk lastRow { acc2: acc, j: 0 } \{ acc2, j }, x ->
-                        if j < i then
-                            { acc2: acc2, j: j + 1 }
-                        else
-                            { acc2: List.set acc2 j x, j: j + 1 }
-
-                result.acc2
+                copyListFragment acc lastRow i 12
     else
         onesOnPosition = List.walk input 0 \sum, row ->
-            sum + listGetUnsafe row i
+            sum + listUnsafeGet row i
         digit = ratingDigitFun onesOnPosition n
         newInput = List.dropIf input \row ->
-            x = listGetUnsafe row i
+            x = listUnsafeGet row i
 
-            if x == digit then
-                Bool.false
-            else
-                Bool.true
+            x != digit
 
         getRating newInput ratingDigitFun (List.set acc i digit) (i + 1)
 
-listGetUnsafe = \list, i ->
+copyListFragment = \target, source, i, to ->
+    if i >= to then
+        target
+    else
+        List.set target i (listUnsafeGet source i)
+        |> copyListFragment source (i + 1) to
+
+listUnsafeGet = \list, i ->
     when List.get list i is
         Ok x -> x
         Err _ -> unreachable
