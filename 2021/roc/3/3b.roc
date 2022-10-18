@@ -53,18 +53,21 @@ getRating = \input, ratingDigitFun, acc, i ->
                 result.acc2
     else
         onesOnPosition = List.walk input 0 \sum, row ->
-            when List.get row i is
-                Ok x -> sum + x
-                Err _ -> sum
+            sum + listGetUnsafe row i
         digit = ratingDigitFun onesOnPosition n
         newInput = List.dropIf input \row ->
-            when List.get row i is
-                Ok x ->
-                    if x == digit then
-                        Bool.false
-                    else
-                        Bool.true
+            x = listGetUnsafe row i
 
-                _ -> Bool.true
+            if x == digit then
+                Bool.false
+            else
+                Bool.true
 
         getRating newInput ratingDigitFun (List.set acc i digit) (i + 1)
+
+listGetUnsafe = \list, i ->
+    when List.get list i is
+        Ok x -> x
+        Err _ -> unreachable
+
+unreachable : *
