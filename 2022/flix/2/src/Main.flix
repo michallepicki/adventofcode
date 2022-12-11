@@ -7,17 +7,8 @@ def rockPaperScissors(): Result[Unit, String] \ Impure =
     let rounds = stringLines |> List.map(String.splitOn({substr = " "}));
     let scoresPart1 = rounds |> List.map(scorePart1);
     debug(List.foldLeft((a, b) -> a + b, 0, scoresPart1));
-
-    // let grouped = splitListBy(stringLines, "");
-    // let ints = grouped |> List.map(List.map(stringToInt));
-    // let result =
-    //     ints
-    //     |> List.map(List.foldLeft((a, b) -> a + b, 0))
-    //     |> List.sort
-    //     |> List.reverse
-    //     |> List.take(3);
-    // debug(List.take(1, result));
-    // debug(List.foldLeft((a, b) -> a + b, 0, result));
+    let scoresPart2 = rounds |> List.map(scorePart2);
+    debug(List.foldLeft((a, b) -> a + b, 0, scoresPart2));
     Ok(())
 
 def scorePart1(line: List[String]): Int32 =
@@ -45,4 +36,45 @@ def scoreRoundPart1(theirPlay: String, myPlay: String): Int32 =
         case ("B", "Z") => 6
         case ("C", "X") => 6
         case _ => 0
+    }
+
+def scorePart2(line: List[String]): Int32 =
+    match line {
+        case left :: right :: Nil => {
+            let rightMove = movePart2(left, right);
+            scoreRightPart1(rightMove) + scoreRoundPart1(left, rightMove)
+        }
+        case _ => unreachable!()
+    }
+
+def movePart2(theirPlay: String, outcome: String): String =
+    match outcome {
+        case "X" => getLose(theirPlay)
+        case "Y" => toRound1Notation(theirPlay)
+        case "Z" => getWin(theirPlay)
+        case _ => unreachable!()
+    }
+
+def toRound1Notation(theirPlay: String): String =
+    match theirPlay {
+        case "A" => "X"
+        case "B" => "Y"
+        case "C" => "Z"
+        case _ => unreachable!()
+    }
+
+def getWin(theirPlay: String): String =
+    match theirPlay {
+        case "A" => "Y"
+        case "B" => "Z"
+        case "C" => "X"
+        case _ => unreachable!()
+    }
+
+def getLose(theirPlay: String): String =
+    match theirPlay {
+        case "A" => "Z"
+        case "B" => "X"
+        case "C" => "Y"
+        case _ => unreachable!()
     }
