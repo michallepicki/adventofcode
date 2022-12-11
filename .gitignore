@@ -1,2 +1,4 @@
 2019/gleam/gen
 *.exe
+2022/flix/**/flix.jar
+2022/flix/*/build
