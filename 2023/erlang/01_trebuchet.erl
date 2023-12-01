@@ -43,32 +43,39 @@ part_one(<<>>, new_line, Acc) ->
 part_two(<<Digit, Rest/binary>>, State, Acc) when Digit >= $0 andalso Digit =< $9 ->
   part_two(Rest, update_state(State, Digit), Acc);
 
-part_two(<<"one", Rest/binary>>, State, Acc) ->
-  part_two(<<"e", Rest/binary>>, update_state(State, $1), Acc);
+part_two(<<"one", _Rest/binary>> = FileContents, State, Acc) ->
+  <<"on", Rest/binary>> = FileContents,
+  part_two(Rest, update_state(State, $1), Acc);
 
-part_two(<<"two", Rest/binary>>, State, Acc) ->
-  part_two(<<"o", Rest/binary>>, update_state(State, $2), Acc);
+part_two(<<"two", _Rest/binary>> = FileContents, State, Acc) ->
+  <<"tw", Rest/binary>> = FileContents,
+  part_two(Rest, update_state(State, $2), Acc);
 
-part_two(<<"three", Rest/binary>>, State, Acc) ->
-  part_two(<<"e", Rest/binary>>, update_state(State, $3), Acc);
+part_two(<<"three", _Rest/binary>> = FileContents, State, Acc) ->
+  <<"thre", Rest/binary>> = FileContents,
+  part_two(Rest, update_state(State, $3), Acc);
 
 part_two(<<"four", Rest/binary>>, State, Acc) ->
   part_two(Rest, update_state(State, $4), Acc);
 
-part_two(<<"five", Rest/binary>>, State, Acc) ->
-  part_two(<<"e", Rest/binary>>, update_state(State, $5), Acc);
+part_two(<<"five", _Rest/binary>> = FileContents, State, Acc) ->
+  <<"fiv", Rest/binary>> = FileContents,
+  part_two(Rest, update_state(State, $5), Acc);
 
 part_two(<<"six", Rest/binary>>, State, Acc) ->
   part_two(Rest, update_state(State, $6), Acc);
 
-part_two(<<"seven", Rest/binary>>, State, Acc) ->
-  part_two(<<"n", Rest/binary>>, update_state(State, $7), Acc);
+part_two(<<"seven", _Rest/binary>> = FileContents, State, Acc) ->
+  <<"seve", Rest/binary>> = FileContents,
+  part_two(Rest, update_state(State, $7), Acc);
 
-part_two(<<"eight", Rest/binary>>, State, Acc) ->
-  part_two(<<"t", Rest/binary>>, update_state(State, $8), Acc);
+part_two(<<"eight", _Rest/binary>> = FileContents, State, Acc) ->
+  <<"eigh", Rest/binary>> = FileContents,
+  part_two(Rest, update_state(State, $8), Acc);
 
-part_two(<<"nine", Rest/binary>>, State, Acc) ->
-  part_two(<<"e", Rest/binary>>, update_state(State, $9), Acc);
+part_two(<<"nine", _Rest/binary>> = FileContents, State, Acc) ->
+  <<"nin", Rest/binary>> = FileContents,
+  part_two(Rest, update_state(State, $9), Acc);
 
 part_two(<<$\n, Rest/binary>>, State, Acc) ->
   part_two(Rest, new_line, update_acc(State, Acc));
