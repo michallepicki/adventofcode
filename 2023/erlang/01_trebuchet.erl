@@ -4,7 +4,7 @@
 -export([main/1]).
 
 main(_) ->
-  {ok, FileContents} = file:read_file("../1"),
+  {ok, FileContents} = file:read_file("../01"),
   erlang:display(part_one(FileContents, new_line, 0)),
   erlang:display(part_two(FileContents, new_line, 0)).
 
