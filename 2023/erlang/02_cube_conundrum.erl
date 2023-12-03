@@ -1,5 +1,5 @@
 #!/usr/bin/env escript
--module(trebuchet).
+-module(cube_conundrum).
 -mode(compile).
 -export([main/1]).
 
