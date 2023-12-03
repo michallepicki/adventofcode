@@ -57,6 +57,13 @@ part_one({number, NumberAcc, IsPartNumber}, X, Y, LineLength, FileContents, Acc)
   end.
 
 
+-spec check_if_part_number(
+  CoordinatesToCheck :: list({integer(), integer()}),
+  IsPartNumber :: boolean(),
+  FileContents :: binary(),
+  LineLength :: integer()
+) -> boolean().
+
 check_if_part_number(_, true, _, _) ->
   true;
 
@@ -72,12 +79,20 @@ check_if_part_number([{X, Y} | Rest], false, FileContents, LineLength) ->
   end.
 
 
+-spec prepend_if_part_number(
+  IsPartNumber :: boolean(),
+  Number :: integer(),
+  Acc :: list(integer())
+) -> list(integer()).
+
 prepend_if_part_number(true, Number, Acc) ->
   [Number | Acc];
 
 prepend_if_part_number(_, _, Acc) ->
   Acc.
 
+
+-spec sum(list(integer()), integer()) -> integer().
 
 sum([N | Rest], Acc) ->
   sum(Rest, Acc + N);
@@ -93,7 +108,7 @@ sum([], Acc) ->
   Y :: integer(),
   LineLength :: integer(),
   FileContents :: binary(),
-  Acc :: #{{integer(), integer()} => list(integer())}
+  Acc :: #{ StarCoordinate :: {integer(), integer()} => SurroundingNumbers :: list(integer())}
 ) -> Answer :: integer().
 
 
@@ -125,6 +140,13 @@ part_two({number, NumberAcc, StarCoordinates}, X, Y, LineLength, FileContents, A
   end.
 
 
+-spec check_surroundings_for_stars(
+  CoordinatesToCheck :: list({integer(), integer()}),
+  AlreadyKnownStarCoordinates :: list({integer(), integer()}),
+  FileContents :: binary(),
+  LineLength :: integer()
+) -> StarCoordinates :: list({integer(), integer()}).
+
 check_surroundings_for_stars([], StarCoordinates, _, _) ->
   StarCoordinates;
 
@@ -137,6 +159,13 @@ check_surroundings_for_stars([{X, Y} | Rest], StarCoordinates, FileContents, Lin
   end.
 
 
+-spec add_number_to_stars(
+  StarCoordinates :: list({integer(), integer()}),
+  Number :: integer(),
+  Acc
+) -> Acc
+  when Acc :: #{ StarCoordinate :: {integer(), integer()} => SurroundingNumbers :: list(integer())}.
+
 add_number_to_stars([], _, Acc) ->
   Acc;
 
@@ -144,6 +173,11 @@ add_number_to_stars([{X, Y} | Rest], Number, Acc) ->
   NewAcc = maps:update_with({X, Y}, fun(Numbers) -> [Number | Numbers] end, [Number], Acc),
   add_number_to_stars(Rest, Number, NewAcc).
 
+
+-spec check_if_gear(
+  StarCoordinate :: {integer(), integer()},
+  SurroundingNumbers :: list(integer)
+) -> {true, integer()} | false.
 
 check_if_gear(_, [N1, N2]) ->
   {true, N1 * N2};
