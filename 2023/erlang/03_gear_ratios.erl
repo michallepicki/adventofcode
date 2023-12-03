@@ -3,7 +3,9 @@
 -mode(compile).
 -export([main/1]).
 
--type state1() :: new_number | {number, NumberAcc :: integer(), IsPartNumber :: boolean()}.
+-type state1() ::
+    new_number
+    | {number, NumberAcc :: integer(), IsPartNumber :: boolean()}.
 
 -type state2() ::
     new_number
@@ -30,61 +32,41 @@ find_line_length(<<_, Rest/binary>>, Acc) -> find_line_length(Rest, Acc + 1).
 ) -> Answer :: integer().
 
 part_one(new_number, X, Y, LineLength, FileContents, Acc) ->
+    Offset = ((Y * LineLength + X) * 8),
     case FileContents of
-        <<_:((Y * LineLength + X) * 8), Digit, _Rest/binary>> = FileContents when
-            Digit >= $0 andalso Digit =< $9
-        ->
+        <<_:Offset, Digit, _/binary>> = FileContents when Digit >= $0 andalso Digit =< $9 ->
+            CoordinatesToCheck = [
+                {X - 1, Y - 1}, {X - 1, Y}, {X - 1, Y + 1}, {X, Y - 1}, {X, Y + 1}
+            ],
             IsPartNumber = check_if_part_number(
-                [{X - 1, Y - 1}, {X - 1, Y}, {X - 1, Y + 1}, {X, Y - 1}, {X, Y + 1}],
-                false,
-                FileContents,
-                LineLength
+                CoordinatesToCheck, false, FileContents, LineLength
             ),
             part_one({number, Digit - $0, IsPartNumber}, X + 1, Y, LineLength, FileContents, Acc);
-        <<_:((Y * LineLength + X) * 8), $\n, _Rest/binary>> ->
+        <<_:Offset, $\n, _/binary>> ->
             part_one(new_number, 0, Y + 1, LineLength, FileContents, Acc);
-        <<_:((Y * LineLength + X) * 8), _, _Rest/binary>> ->
+        <<_:Offset, _, _/binary>> ->
             part_one(new_number, X + 1, Y, LineLength, FileContents, Acc);
-        <<_:((Y * LineLength + X) * 8)>> ->
+        <<_:Offset>> ->
             sum(Acc, 0)
     end;
 part_one({number, NumberAcc, IsPartNumber}, X, Y, LineLength, FileContents, Acc) ->
+    Offset = ((Y * LineLength + X) * 8),
     case FileContents of
-        <<_:((Y * LineLength + X) * 8), Digit, _Rest/binary>> = FileContents when
-            Digit >= $0 andalso Digit =< $9
-        ->
+        <<_:Offset, Digit, _/binary>> = FileContents when Digit >= $0 andalso Digit =< $9 ->
             NewIsPartNumber = check_if_part_number(
                 [{X, Y - 1}, {X, Y + 1}], IsPartNumber, FileContents, LineLength
             ),
-            part_one(
-                {number, NumberAcc * 10 + Digit - $0, NewIsPartNumber},
-                X + 1,
-                Y,
-                LineLength,
-                FileContents,
-                Acc
-            );
-        <<_:((Y * LineLength + X) * 8), $\n, _Rest/binary>> ->
-            part_one(
-                new_number,
-                0,
-                Y + 1,
-                LineLength,
-                FileContents,
-                prepend_if_part_number(IsPartNumber, NumberAcc, Acc)
-            );
-        <<_:((Y * LineLength + X) * 8), _, _Rest/binary>> ->
+            NewState = {number, NumberAcc * 10 + Digit - $0, NewIsPartNumber},
+            part_one(NewState, X + 1, Y, LineLength, FileContents, Acc);
+        <<_:Offset, $\n, _/binary>> ->
+            NewAcc = prepend_if_part_number(IsPartNumber, NumberAcc, Acc),
+            part_one(new_number, 0, Y + 1, LineLength, FileContents, NewAcc);
+        <<_:Offset, _, _/binary>> ->
             NewIsPartNumber = check_if_part_number(
                 [{X, Y - 1}, {X, Y}, {X, Y + 1}], IsPartNumber, FileContents, LineLength
             ),
-            part_one(
-                new_number,
-                X + 1,
-                Y,
-                LineLength,
-                FileContents,
-                prepend_if_part_number(NewIsPartNumber, NumberAcc, Acc)
-            )
+            NewAcc = prepend_if_part_number(NewIsPartNumber, NumberAcc, Acc),
+            part_one(new_number, X + 1, Y, LineLength, FileContents, NewAcc)
     end.
 
 -spec check_if_part_number(
@@ -99,8 +81,9 @@ check_if_part_number(_, true, _, _) ->
 check_if_part_number([], false, _, _) ->
     false;
 check_if_part_number([{X, Y} | Rest], false, FileContents, LineLength) ->
+    Offset = ((Y * LineLength + X) * 8),
     case FileContents of
-        <<_:((Y * LineLength + X) * 8), Character, _Rest/binary>> when
+        <<_:Offset, Character, _/binary>> when
             X >= 0 andalso Y >= 0 andalso Y =< LineLength andalso Character /= $. andalso
                 Character /= $\n andalso not (Character >= $0 andalso Character =< $9)
         ->
@@ -137,65 +120,48 @@ sum([], Acc) ->
 ) -> Answer :: integer().
 
 part_two(new_number, X, Y, LineLength, FileContents, Acc) ->
+    Offset = ((Y * LineLength + X) * 8),
     case FileContents of
-        <<_:((Y * LineLength + X) * 8), Digit, _Rest/binary>> = FileContents when
+        <<_:Offset, Digit, _/binary>> = FileContents when
             Digit >= $0 andalso Digit =< $9
         ->
+            CoordinatesToCheck = [
+                {X - 1, Y - 1}, {X - 1, Y}, {X - 1, Y + 1}, {X, Y - 1}, {X, Y + 1}
+            ],
             StarCoordinates = check_surroundings_for_stars(
-                [{X - 1, Y - 1}, {X - 1, Y}, {X - 1, Y + 1}, {X, Y - 1}, {X, Y + 1}],
-                [],
-                FileContents,
-                LineLength
+                CoordinatesToCheck, [], FileContents, LineLength
             ),
-            part_two(
-                {number, Digit - $0, StarCoordinates}, X + 1, Y, LineLength, FileContents, Acc
-            );
-        <<_:((Y * LineLength + X) * 8), $\n, _Rest/binary>> ->
+            NewState = {number, Digit - $0, StarCoordinates},
+            part_two(NewState, X + 1, Y, LineLength, FileContents, Acc);
+        <<_:Offset, $\n, _/binary>> ->
             part_two(new_number, 0, Y + 1, LineLength, FileContents, Acc);
-        <<_:((Y * LineLength + X) * 8), _, _Rest/binary>> ->
+        <<_:Offset, _, _/binary>> ->
             part_two(new_number, X + 1, Y, LineLength, FileContents, Acc);
-        <<_:((Y * LineLength + X) * 8)>> ->
+        <<_:Offset>> ->
             Gears = maps:filtermap(fun check_if_gear/2, Acc),
             GearRatios = maps:values(Gears),
             sum(GearRatios, 0)
     end;
 part_two({number, NumberAcc, StarCoordinates}, X, Y, LineLength, FileContents, Acc) ->
+    Offset = ((Y * LineLength + X) * 8),
     case FileContents of
-        <<_:((Y * LineLength + X) * 8), Digit, _Rest/binary>> = FileContents when
-            Digit >= $0 andalso Digit =< $9
-        ->
+        <<_:Offset, Digit, _/binary>> = FileContents when Digit >= $0 andalso Digit =< $9 ->
+            CoordinatesToCheck = [{X, Y - 1}, {X, Y + 1}],
             NewStarCoordinates = check_surroundings_for_stars(
-                [{X, Y - 1}, {X, Y + 1}], StarCoordinates, FileContents, LineLength
+                CoordinatesToCheck, StarCoordinates, FileContents, LineLength
             ),
-            part_two(
-                {number, NumberAcc * 10 + Digit - $0, NewStarCoordinates},
-                X + 1,
-                Y,
-                LineLength,
-                FileContents,
-                Acc
-            );
-        <<_:((Y * LineLength + X) * 8), $\n, _Rest/binary>> ->
-            part_two(
-                new_number,
-                0,
-                Y + 1,
-                LineLength,
-                FileContents,
-                add_number_to_stars(StarCoordinates, NumberAcc, Acc)
-            );
-        <<_:((Y * LineLength + X) * 8), _, _Rest/binary>> ->
+            NewState = {number, NumberAcc * 10 + Digit - $0, NewStarCoordinates},
+            part_two(NewState, X + 1, Y, LineLength, FileContents, Acc);
+        <<_:Offset, $\n, _/binary>> ->
+            NewAcc = add_number_to_stars(StarCoordinates, NumberAcc, Acc),
+            part_two(new_number, 0, Y + 1, LineLength, FileContents, NewAcc);
+        <<_:Offset, _, _/binary>> ->
+            CoordinatesToCheck = [{X, Y - 1}, {X, Y}, {X, Y + 1}],
             NewStarCoordinates = check_surroundings_for_stars(
-                [{X, Y - 1}, {X, Y}, {X, Y + 1}], StarCoordinates, FileContents, LineLength
+                CoordinatesToCheck, StarCoordinates, FileContents, LineLength
             ),
-            part_two(
-                new_number,
-                X + 1,
-                Y,
-                LineLength,
-                FileContents,
-                add_number_to_stars(NewStarCoordinates, NumberAcc, Acc)
-            )
+            NewAcc = add_number_to_stars(NewStarCoordinates, NumberAcc, Acc),
+            part_two(new_number, X + 1, Y, LineLength, FileContents, NewAcc)
     end.
 
 -spec check_surroundings_for_stars(
@@ -208,8 +174,9 @@ part_two({number, NumberAcc, StarCoordinates}, X, Y, LineLength, FileContents, A
 check_surroundings_for_stars([], StarCoordinates, _, _) ->
     StarCoordinates;
 check_surroundings_for_stars([{X, Y} | Rest], StarCoordinates, FileContents, LineLength) ->
+    Offset = ((Y * LineLength + X) * 8),
     case FileContents of
-        <<_:((Y * LineLength + X) * 8), $*, _Rest/binary>> ->
+        <<_:Offset, $*, _/binary>> ->
             check_surroundings_for_stars(
                 Rest, [{X, Y} | StarCoordinates], FileContents, LineLength
             );
